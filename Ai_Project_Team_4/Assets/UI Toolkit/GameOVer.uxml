@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="GameOVer" style="flex-grow: 1;">
+        <ui:VisualElement style="flex-grow: 1; align-items: center; align-self: auto; justify-content: flex-end; width: 100%; height: 60%;">
+            <ui:Label tabindex="-1" text="GAME OVER" parse-escape-sequences="true" display-tooltip-when-elided="true" style="margin-bottom: 100px; font-size: 250px; color: rgb(156, 0, 0); -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; height: 40%; align-items: center;">
+            <ui:Button text="GO to Title" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Go" style="margin-top: 100px; width: 30%; height: 40%; font-size: 80px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
