@@ -9,12 +9,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2137314071465783337}
+  - component: {fileID: 1750000773843198076}
   - component: {fileID: 5546411135033089879}
   - component: {fileID: 3531076455501896928}
   - component: {fileID: 7791377811467661944}
   m_Layer: 0
-  m_Name: Item
-  m_TagString: Untagged
+  m_Name: Projectile
+  m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -34,6 +35,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1750000773843198076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816988857939289933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf4db0324a9f4d7418ec97c2f896c5ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 20
+  spawner: {fileID: 0}
+  isPlayerGetting: 0
+  projectileRb: {fileID: 3531076455501896928}
+  projectileSprite: {fileID: 5546411135033089879}
+  projectileCol: {fileID: 7791377811467661944}
 --- !u!212 &5546411135033089879
 SpriteRenderer:
   m_ObjectHideFlags: 0
