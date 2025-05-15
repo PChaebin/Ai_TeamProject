@@ -12,9 +12,9 @@ public class Projectile : MonoBehaviour
 
     [Header("ItemSpawner")]
     public ItemSpawner spawner;
+    [Header("Index")]
+    public int index;
 
-    [Header("PlayerGet")]
-    public bool isPlayerGetting = false;
     [Header("isDestoryed")]
     public bool isDestoryed = false;
 
@@ -27,8 +27,41 @@ public class Projectile : MonoBehaviour
         spawner = spawnerScript;
     }
 
+    public void SetIndex(int indexNum)
+    {
+        index = indexNum;
+    }
+
+    public int GetIndex() 
+    { 
+        return index; 
+    }
+    public bool GetIsDestoryed()
+    {
+        return isDestoryed;
+    }
+
+    public void SetDestoryed()
+    {
+        isDestoryed = true;
+    }
+
+    public void SetSaved()
+    {
+        isDestoryed = false;
+    }
+
+    public void CheckRespawn()
+    {
+        if (spawner.CheckAllProjectileDestory())
+        {
+            spawner.CallRespawn();
+        }
+    }
+
     public void Fire(Vector2 playerPos, Vector2 mousePos)
     {
+        this.transform.position = playerPos;
         OnRender();
         Vector2 direction = (mousePos - playerPos).normalized;
         this.transform.up = direction;
@@ -36,34 +69,17 @@ public class Projectile : MonoBehaviour
         StartCoroutine(DestoryTimer());
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if(isPlayerGetting)
-        {
-            if (collision.gameObject.CompareTag("Moster") || collision.gameObject.CompareTag("Arm"))
-            {
-                SetDestoryed();
-                OffRender();
-            }
-            return;
-        }
-
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            SetGetting();
-            OffRender();
-        }
-    }
-
     IEnumerator DestoryTimer()
     {
         yield return new WaitForSeconds(1.2f);
-        SetDestoryed();
-        OffRender();
-        if(spawner.CheckAllProjectileDestory())
+        if(!GetIsDestoryed())
         {
-            spawner.CallReSpawn();
+            Debug.Log("Projectile 77 + destory");
+            SetDestoryed();
+            OffRender();
         }
+        CheckRespawn();
+        Debug.Log("Projectile 82 + destory");
     }
 
     public void OnRender()
@@ -79,28 +95,4 @@ public class Projectile : MonoBehaviour
         projectileSprite.enabled = false;
     }
 
-    public void SetGetting()
-    {
-        isPlayerGetting = true;
-    }
-
-    public void SetPutting()
-    {
-        isPlayerGetting = false;
-    }
-
-    public bool GetIsDestoryed()
-    {
-        return isDestoryed;
-    }
-
-    public void SetDestoryed()
-    {
-        isDestoryed = true;
-    }
-
-    public void SetSaved()
-    {
-        isDestoryed = false;
-    }
 }

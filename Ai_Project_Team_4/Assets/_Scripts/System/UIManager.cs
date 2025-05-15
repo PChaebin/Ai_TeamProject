@@ -16,7 +16,7 @@ public class UIManager : MonoBehaviour
     public Button retryBtu;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         titleUI.SetActive(true);
         inventoryUI.SetActive(false);

@@ -19,28 +19,27 @@ public class ItemSpawner : MonoBehaviour
     public int projectileNum = 5;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         CreatePassword();
         SetProjectileList();
         StartCoroutine(SpawnProjectile(0f));
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        if (Input.GetMouseButtonUp(0))
-        {
-            projectileScriptsList[count].Fire(this.transform.position, pos);
-            count += 1;
-            Debug.Log(count);
-        }
-        if(count >= 5)
-        {
-            count = 0;
-        }
-    }
+    //void Update()
+    //{
+    //    Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    //    if (Input.GetMouseButtonUp(0))
+    //    {
+    //        projectileScriptsList[count].Fire(this.transform.position, pos);
+    //        count += 1;
+    //        Debug.Log(count);
+    //    }
+    //    if(count >= 5)
+    //    {
+    //        count = 0;
+    //    }
+    //}
 
     public List<Projectile> GetProjectileListcs()
     {
@@ -51,7 +50,7 @@ public class ItemSpawner : MonoBehaviour
     {
         return passwordList;
     }
-    public void CallReSpawn()
+    public void CallRespawn()
     {
         StartCoroutine(SpawnProjectile(3f));
     }
@@ -79,6 +78,7 @@ public class ItemSpawner : MonoBehaviour
             GameObject projectileInst = Instantiate(projectile, transform.position, transform.rotation);
             Projectile projectileScript = projectileInst.GetComponent<Projectile>();
             projectileScript.SetSpawner(this.GetComponent<ItemSpawner>());
+            projectileScript.SetIndex(i);
             projectileScript.OffRender();
             projectileList.Add(projectileInst);
             projectileScriptsList.Add(projectileScript);
@@ -89,6 +89,8 @@ public class ItemSpawner : MonoBehaviour
     {
         for (int i = 0; i < projectileNum; i++)
         {
+            yield return new WaitForSeconds(time);
+
             float x = Random.Range(-10, 11);
             float y = Random.Range(-10, 11);
             Vector3 randomPos = new Vector3(x, y, 0);
@@ -96,10 +98,7 @@ public class ItemSpawner : MonoBehaviour
             projectileList[i].transform.up = Vector3.zero;
 
             projectileScriptsList[i].OnRender();
-            projectileScriptsList[i].SetPutting();
             projectileScriptsList[i].SetSaved();
-
-            yield return new WaitForSeconds(time);
         }
     }
     public bool CheckAllProjectileDestory()

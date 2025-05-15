@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7791377811467661944}
   m_Layer: 0
   m_Name: Projectile
-  m_TagString: Item
+  m_TagString: Projectile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -49,7 +49,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 20
   spawner: {fileID: 0}
-  isPlayerGetting: 0
+  index: 0
+  isDestoryed: 0
   projectileRb: {fileID: 3531076455501896928}
   projectileSprite: {fileID: 5546411135033089879}
   projectileCol: {fileID: 7791377811467661944}
