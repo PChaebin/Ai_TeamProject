@@ -6,7 +6,7 @@ public class PlayerCameraCtrl : MonoBehaviour
 {
     public Transform target;
 
-    float smoothing = 10f;
+    float smoothing = 100f;
     Vector3 offset;
 
     void Start()
