@@ -1,18 +1,73 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static Unity.VisualScripting.Member;
 
 public class WeightGeneticSystem : MonoBehaviour
 {
     [Header("Generaton")]
     public List<List<float[,]>> generatons = new List<List<float[,]>>();
 
+    [Header("Generaton Index")]
+    public int genIndex = 0;
+
+    [Header("Fitness")]
+    public List<float> fitness = new List<float>();
+
+    [Header("Genraton Seed")]
+    public int seed = 1;
+
     private void Start()
     {
         InitObject();
     }
-    public float[] NerualNetwork(float[] inputs, float[,] weightIH, float[,] weightHO)
+
+    public void SelecteGen()
     {
+        List<List<float[,]>> bester = new List<List<float[,]>>();
+        for(int i = 0; i < 4; i++)
+        {
+            float bestValue = fitness.Max();
+            int bestIndex = fitness.FindIndex(x => x == bestValue );
+            bester.Add(generatons[bestIndex]);
+            generatons.Remove(generatons[bestIndex]);
+            fitness.Remove(fitness[bestIndex]);
+        }
+
+        for (int i =0; i < 30; i++)
+        {
+            // Get first random index
+            int firstIndex = UnityEngine.Random.Range(0, generatons.Count);
+
+            // Get second random index ensuring it's different from firstIndex
+            int secondIndex = UnityEngine.Random.Range(0, generatons.Count - 1);
+            if (secondIndex >= firstIndex)
+                secondIndex++;
+            generatons.Remove(generatons[secondIndex]);
+            fitness.Remove(fitness[secondIndex]);
+        }
+    }
+
+    public void CrossOver()
+    {
+        seed++;
+    }
+
+    public void SetFitness(bool isProtected, float distance = 0)
+    {
+        genIndex++;
+        if(genIndex >= 64)
+        {
+            genIndex = 0;
+        }
+    }
+
+    public float[] NerualNetwork(float[] inputs)
+    {
+        float[,] weightIH = generatons[genIndex][0];
+        float[,] weightHO = generatons[genIndex][1];
         // 1) Àº´ÐÃþ °è»ê: hidden = weightIH ¡¿ inputs
         var hidden = new float[5];
         for (int h = 0; h < 5; h++)
@@ -81,14 +136,14 @@ public class WeightGeneticSystem : MonoBehaviour
         {
             for (int i = 0; i < 7; i++)
             {
-                ih[h, i] = Random.value;
+                ih[h, i] = UnityEngine.Random.value;
             }
         }
         for (int o = 0; o < 4; o++)
         {
             for (int h = 0; h < 5; h++)
             {
-                ho[o, h] = Random.value;
+                ho[o, h] = UnityEngine.Random.value;
             }
         }
         List<float[,]> generaton = new List<float[,]>();
