@@ -13,13 +13,16 @@ public class InputSensor : MonoBehaviour
 
     [Header("InputLayerNode")]
     [SerializeField]
-    private List<float> inputLayerNode;
+    private float[] inputLayerNode;
+
+    [Header("WeightGeneticSystem")]
+    [SerializeField]
+    private float[] outputLayerNode;
 
     // Update is called once per frame
     void Start()
     {
-        inputLayerNode = new List<float>(7) { 0,0,0,0,0,0,0 };
-
+        inputLayerNode = new float[7] { 0,0,0,0,0,0,0 };
     }
 
     private void OnTriggerStay2D(Collider2D collision)
