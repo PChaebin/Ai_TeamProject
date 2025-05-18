@@ -1,11 +1,18 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class InputSensor : MonoBehaviour
 {
     [Header("collider")]
     public Collider2D Collider;
+    [Header("LeftArmPoint")]
+    public GameObject leftArmPoint;
+    [Header("RightArmPoint")]
+    public GameObject rightArmPoint;
+
     [Header("LeftArm")]
     public GameObject leftArm;
     [Header("RightArm")]
@@ -22,7 +29,12 @@ public class InputSensor : MonoBehaviour
     // Update is called once per frame
     void Start()
     {
-        inputLayerNode = new float[7] { 0,0,0,0,0,0,0 };
+        inputLayerNode = new float[4] { 10,0,0,0 };
+    }
+
+    private void FixedUpdate()
+    {
+        rotateAction(false, inputLayerNode);
     }
 
     private void OnTriggerStay2D(Collider2D collision)
@@ -33,10 +45,35 @@ public class InputSensor : MonoBehaviour
             SetPositionMinusToLeftArm(GetPositionMinusToLeftArm(collision.gameObject));
             SetPositionPlusToRightArm(GetPositionPlusToRightArm(collision.gameObject));
             SetPositionMinusToRightArm(GetPositionMinusToRightArm(collision.gameObject));
-            Debug.Log("Left-right : " + inputLayerNode[2]);
-            Debug.Log("Left-left : " + inputLayerNode[3]);
-            Debug.Log("Right-right : " + inputLayerNode[5]);
-            Debug.Log("Right-left : " + inputLayerNode[6]);
+        }
+    }
+
+    public void rotateAction(bool status, float[] outPut)
+    {
+        if(status)
+        {
+            return;
+        }
+        float actionValue = outPut.Max();
+        int actionIndex = Array.IndexOf(outPut, actionValue);
+        //Debug.Log("index : " + actionIndex);
+        switch (actionIndex)
+        {
+            case 0:
+                rightArm.transform.Rotate(Vector3.forward, 3f);
+                break;
+            case 1:
+                rightArm.transform.Rotate(Vector3.forward, -3f);
+                break;
+            case 2:
+                leftArm.transform.Rotate(Vector3.forward, 3f);
+                break;
+            case 3:
+                leftArm.transform.Rotate(Vector3.forward, -3f);
+                break;
+            default:
+                Debug.Log("notting");
+                break;
         }
     }
 
@@ -53,7 +90,7 @@ public class InputSensor : MonoBehaviour
 
     public float GetDistanceToLeftArm(GameObject projectile)
     {
-        float distanceToLeftArm = (projectile.transform.position - leftArm.transform.position).magnitude;
+        float distanceToLeftArm = (projectile.transform.position - leftArmPoint.transform.position).magnitude;
         return distanceToLeftArm;
     }
 
@@ -64,7 +101,7 @@ public class InputSensor : MonoBehaviour
 
     public float GetPositionPlusToLeftArm(GameObject projectile)
     {
-        Vector3 localPos = leftArm.transform.InverseTransformPoint(projectile.transform.position);
+        Vector3 localPos = leftArmPoint.transform.InverseTransformPoint(projectile.transform.position);
 
         if(localPos.x > 0f)
         {
@@ -80,7 +117,7 @@ public class InputSensor : MonoBehaviour
 
     public float GetPositionMinusToLeftArm(GameObject projectile)
     {
-        Vector3 localPos = leftArm.transform.InverseTransformPoint(projectile.transform.position);
+        Vector3 localPos = leftArmPoint.transform.InverseTransformPoint(projectile.transform.position);
 
         if (localPos.x < 0f)
         {
@@ -96,7 +133,7 @@ public class InputSensor : MonoBehaviour
 
     public float GetDistanceToRightArm(GameObject projectile)
     {
-        float distanceToRightArm = (projectile.transform.position - rightArm.transform.position).magnitude;
+        float distanceToRightArm = (projectile.transform.position - rightArmPoint.transform.position).magnitude;
         return distanceToRightArm;
     }
 
@@ -106,7 +143,7 @@ public class InputSensor : MonoBehaviour
     }
     public float GetPositionPlusToRightArm(GameObject projectile)
     {
-        Vector3 localPos = rightArm.transform.InverseTransformPoint(projectile.transform.position);
+        Vector3 localPos = rightArmPoint.transform.InverseTransformPoint(projectile.transform.position);
 
         if (localPos.x > 0f)
         {
@@ -122,7 +159,7 @@ public class InputSensor : MonoBehaviour
 
     public float GetPositionMinusToRightArm(GameObject projectile)
     {
-        Vector3 localPos = rightArm.transform.InverseTransformPoint(projectile.transform.position);
+        Vector3 localPos = rightArmPoint.transform.InverseTransformPoint(projectile.transform.position);
 
         if (localPos.x < 0f)
         {

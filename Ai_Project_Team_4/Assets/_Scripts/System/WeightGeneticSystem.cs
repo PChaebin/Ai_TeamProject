@@ -11,6 +11,34 @@ public class WeightGeneticSystem : MonoBehaviour
     {
         InitObject();
     }
+    public float[] NerualNetwork(float[] inputs, float[,] weightIH, float[,] weightHO)
+    {
+        // 1) Àº´ÐÃþ °è»ê: hidden = weightIH ¡¿ inputs
+        var hidden = new float[5];
+        for (int h = 0; h < 5; h++)
+        {
+            float sum = 0f;
+            for (int i = 0; i < 7; i++)
+            {
+                sum += weightIH[h, i] * inputs[i];
+            }
+            hidden[h] = Sigmoid(sum);
+        }
+
+        // 2) Ãâ·ÂÃþ °è»ê: output = weightHO ¡¿ hidden
+        var output = new float[4];
+        for (int o = 0; o < 4; o++)
+        {
+            float sum = 0f;
+            for (int h = 0; h < 5; h++)
+            {
+                sum += weightHO[o, h] * hidden[h];
+            }
+            output[o] = Sigmoid(sum);
+        }
+
+        return output;
+    }
 
     public void InitObject()
     {
@@ -18,7 +46,6 @@ public class WeightGeneticSystem : MonoBehaviour
         {
             generatons.Add(InitGeneratons());
         }
-        Print(generatons);
     }
 
     public void Print(List<List<float[,]>> objList)
@@ -83,34 +110,6 @@ public class WeightGeneticSystem : MonoBehaviour
             }
         }
         return dest;
-    }
-    public float[] NerualNetwork(float[] inputs, float[,] weightIH, float[,] weightHO)
-    {
-        // 1) Àº´ÐÃþ °è»ê: hidden = weightIH ¡¿ inputs
-        var hidden = new float[5];
-        for (int h = 0; h < 5; h++)
-        {
-            float sum = 0f;
-            for (int i = 0; i < 7; i++)
-            {
-                sum += weightIH[h, i] * inputs[i];
-            }
-            hidden[h] = Sigmoid(sum);
-        }
-
-        // 2) Ãâ·ÂÃþ °è»ê: output = weightHO ¡¿ hidden
-        var output = new float[4];
-        for (int o = 0; o < 4; o++)
-        {
-            float sum = 0f;
-            for (int h = 0; h < 5; h++)
-            {
-                sum += weightHO[o, h] * hidden[h];
-            }
-            output[o] = Sigmoid(sum);
-        }
-
-        return output;
     }
     private static float Sigmoid(float x)
     {
