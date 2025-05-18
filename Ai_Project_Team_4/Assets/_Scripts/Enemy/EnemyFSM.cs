@@ -48,18 +48,6 @@ public class EnemyFSM : MonoBehaviour
     [Header("Stun 설정")]
     private float stunDuration = 2f;
 
-    /*void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }*/
-
     void Start()
     {
         GameObject found = GameObject.Find("Player");
@@ -110,7 +98,6 @@ public class EnemyFSM : MonoBehaviour
         stateTimer = 0f;
         Debug.Log($"[FSM] State changed to: {newState}");
 
-        // 상태별 초기화
         switch (newState)
         {
             case State.Patrol:
@@ -161,7 +148,6 @@ public class EnemyFSM : MonoBehaviour
 
         if (player == null) return;
 
-        // 플레이어를 바라보게 회전
         Vector2 toPlayer = (player.position - transform.position).normalized;
         float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
@@ -193,7 +179,6 @@ public class EnemyFSM : MonoBehaviour
         Vector2 dir = (player.position - transform.position).normalized;
         transform.Translate(dir * chaseSpeed * Time.deltaTime);
 
-        // 예시: 플레이어가 멀어지면 다시 Patrol
         if (!PlayerDetected())
         {
             ChangeState(State.Patrol);
@@ -201,7 +186,7 @@ public class EnemyFSM : MonoBehaviour
     }
 
     /// <summary>
-    /// 쳐내기 : 플레이어 무기 쳐내기
+    /// 막기 : 플레이어 무기 쳐내기
     /// </summary>
     void Block()
     {
