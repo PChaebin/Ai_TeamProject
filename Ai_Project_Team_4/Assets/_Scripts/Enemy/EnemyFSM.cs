@@ -48,6 +48,9 @@ public class EnemyFSM : MonoBehaviour
     [Header("Stun 설정")]
     private float stunDuration = 2f;
 
+    [Header("Hit Box")]
+    public Collider2D Collider;
+
     void Start()
     {
         GameObject found = GameObject.Find("Player");
@@ -227,6 +230,21 @@ public class EnemyFSM : MonoBehaviour
 
         // 감지 거리 안에 있고 벽에 안 막혔으면 감지 성공
         return distance <= detectRange;
+    }
+
+    /// <summary>
+    /// 발사체와 맞으면 기절하는 부분 호출 부분 - 콜라이더 엔터로 사용
+    /// </summary>
+    /// <param name="collision"></param>
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Projectile"))
+        {
+            Projectile item = collision.gameObject.GetComponent<Projectile>();
+            item.SetDestoryed();
+            item.OffRender();
+            ChangeState(State.Stun);
+        }
     }
 
     private void OnDrawGizmos()

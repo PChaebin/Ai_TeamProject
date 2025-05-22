@@ -7,7 +7,8 @@ using UnityEngine;
 public class TestArms : MonoBehaviour
 {
     [Header("Collision")]
-    public Collider2D Collider;
+    [SerializeField]
+    private Collider2D Collider;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
