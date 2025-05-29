@@ -316,7 +316,7 @@ PrefabInstance:
     - target: {fileID: 2137314071465783337, guid: 54b62546552ec744eb2f3e482709af33,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.03
+      value: -2.21
       objectReference: {fileID: 0}
     - target: {fileID: 2137314071465783337, guid: 54b62546552ec744eb2f3e482709af33,
         type: 3}
@@ -640,6 +640,12 @@ MonoBehaviour:
   rightArm: {fileID: 476920331}
   inputLayerNode: []
   outputLayerNode: []
+  genIndex: 0
+  fitness: []
+  seed: 1
+  genN: 64
+  seedN: 100
+  ele: 4
 --- !u!61 &1422878810 stripped
 BoxCollider2D:
   m_CorrespondingSourceObject: {fileID: 478456942293448649, guid: 58778501132af76448b157a5c951e10f,

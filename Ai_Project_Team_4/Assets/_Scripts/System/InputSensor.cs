@@ -9,8 +9,11 @@ public class InputSensor : MonoBehaviour
     //감지영역
     [Header("collider")]
     public Collider2D Collider;
+    // 돌리세요!
+    [Header("isTurning")]
+    public bool isTurning = false;
 
-    //왼팔 오른팔 중심축
+    //왼팔 오른팔 손끝
     [Header("LeftArmPoint")]
     public GameObject leftArmPoint;
     [Header("RightArmPoint")]
@@ -30,15 +33,29 @@ public class InputSensor : MonoBehaviour
     [SerializeField]
     private float[] outputLayerNode;
 
-    //유전자객체 리스트와 객체인덱스와 세대수와 평가함수
+    //유전자개체 리스트와 객체인덱스와 세대수와 평가함수
     [Header("Generaton")]
     public List<List<float[,]>> generatons = new List<List<float[,]>>();
-    [Header("Generaton Index")]
+    [Header("current Generaton Index")]
     public int genIndex = 0;
     [Header("Fitness")]
     public List<float> fitness = new List<float>();
     [Header("Genraton Seed")]
     public int seed = 1;
+
+    //개체수
+    [Header("generaton n 64")]
+    public int genN = 64;
+    //최대세대
+    [Header("seed n 100")]
+    public int seedN = 100;
+    //엘리트 수
+    [Header("eleitm 4")]
+    public int ele = 4;
+
+    //팔과탄환최대거리
+    [Header("maxDist")]
+    public float maxDist = 1.5f;
 
     // Update is called once per frame
     void Start()
@@ -49,8 +66,11 @@ public class InputSensor : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // 반환 값 팔 돌리기 
-        rotateAction(outputLayerNode);
+        if(isTurning)
+        {
+            // 반환 값 팔 돌리기 
+            rotateAction(outputLayerNode);
+        }
     }
 
     /// <summary>
@@ -61,6 +81,7 @@ public class InputSensor : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Projectile"))
         {
+            isTurning = true;
             SetDistanceToProjectile(GetDistanceToProjectile(collision.gameObject));
             SetDistanceToLeftArm(GetDistanceToLeftArm(collision.gameObject));
             SetDistanceToRightArm(GetDistanceToRightArm(collision.gameObject));
@@ -68,8 +89,11 @@ public class InputSensor : MonoBehaviour
             SetPositionMinusToLeftArm(GetPositionMinusToLeftArm(collision.gameObject));
             SetPositionPlusToRightArm(GetPositionPlusToRightArm(collision.gameObject));
             SetPositionMinusToRightArm(GetPositionMinusToRightArm(collision.gameObject));
+
             outputLayerNode = NerualNetwork(inputLayerNode);
+            SetFitness(leftArmPoint, rightArmPoint, collision.gameObject);
         }
+        isTurning = false;
     }
 
     /// <summary>
@@ -138,53 +162,146 @@ public class InputSensor : MonoBehaviour
     }
 
     /// <summary>
-    /// 선택함수 
+    /// 엘리트, 토너먼트 선택과 교배 함수 
     /// </summary>
-    public void SelecteGen()
+    IEnumerator SelecteGen()
     {
-        List<List<float[,]>> bester = new List<List<float[,]>>();
+        //다음 세대에 넣을 것
+        List<List<float[,]>> corrosGeneratons = new List<List<float[,]>>();
+
+        // 엘리트 선택 후 다음 세대에 바로 넣어줌 (4개)
         for (int i = 0; i < 4; i++)
         {
             float bestValue = fitness.Max();
             int bestIndex = fitness.FindIndex(x => x == bestValue);
-            bester.Add(generatons[bestIndex]);
-            generatons.Remove(generatons[bestIndex]);
-            fitness.Remove(fitness[bestIndex]);
+            corrosGeneratons.Add(generatons[bestIndex]);
         }
 
-        for (int i = 0; i < 30; i++)
+        int firstIndex;
+        int secondIndex;
+
+        float gen1;
+        float gen2;
+
+        List<List<float[,]>> tonement = new List<List<float[,]>>();
+
+        // 토너먼트진행, 64개의 절반인 32개 선택
+        for (int i = 0; i < 32; i++)
         {
             // Get first random index
-            int firstIndex = UnityEngine.Random.Range(0, generatons.Count);
+            firstIndex = UnityEngine.Random.Range(0, generatons.Count);
 
             // Get second random index ensuring it's different from firstIndex
-            int secondIndex = UnityEngine.Random.Range(0, generatons.Count - 1);
+            secondIndex = UnityEngine.Random.Range(0, generatons.Count - 1);
             if (secondIndex >= firstIndex)
                 secondIndex++;
-            generatons.Remove(generatons[secondIndex]);
-            fitness.Remove(fitness[secondIndex]);
+
+            gen1 = fitness[firstIndex];
+            gen2 = fitness[secondIndex];
+
+            if (gen1 >= gen2)
+            {
+                tonement.Add(generatons[firstIndex]);
+            }
+            else
+            {
+                tonement.Add(generatons[secondIndex]);
+            }
         }
-    }
-    
-    /// <summary>
-    /// 교배함수 
-    /// </summary>
-    public void CrossOver()
-    {
+
+        int par1indx;
+        int par2indx;
+
+        List<float[,]> parent1;
+        List<float[,]> parent2;
+
+        // 다점 교배 진행
+        while (corrosGeneratons.Count < generatons.Count)
+        {
+            List<float[,]> child1 = new List<float[,]>();
+            List<float[,]> child2 = new List<float[,]>();
+
+            par1indx = UnityEngine.Random.Range(0, tonement.Count);
+            par2indx = UnityEngine.Random.Range(0, tonement.Count -1 );
+            if (par2indx >= par1indx)
+                par2indx++;
+
+            parent1 = tonement[par1indx];
+            parent2 = tonement[par2indx];
+
+            // 1) 절단점 개수 지정
+            int numPoints = 2;
+
+            // 2) [1, parent1.Count) 범위에서 중복 없이 절단점 생성
+            List<int> points = new List<int>();
+            while (points.Count < numPoints)
+            {
+                int p = UnityEngine.Random.Range(1, parent1.Count);
+                if (!points.Contains(p))
+                    points.Add(p);
+            }
+            points.Sort();            // 오름차순 정렬
+            points.Add(parent1.Count); // 마지막은 전체 길이
+
+            // 4) 절단점 사이 구간을 번갈아 가며 붙여넣기
+            int last = 0;
+            bool takeFromP1 = true;
+            foreach (int cut in points)
+            {
+                int len = cut - last;
+                if (takeFromP1)
+                {
+                    // parent1 → child1, parent2 → child2
+                    child1.AddRange(parent1.GetRange(last, len));
+                    child2.AddRange(parent2.GetRange(last, len));
+                }
+                else
+                {
+                    // parent2 → child1, parent1 → child2
+                    child1.AddRange(parent2.GetRange(last, len));
+                    child2.AddRange(parent1.GetRange(last, len));
+                }
+                takeFromP1 = !takeFromP1;
+                last = cut;
+            }
+            corrosGeneratons.Add(child1);
+            corrosGeneratons.Add(child2);
+            yield return new WaitForSeconds(0.02f);
+        }
+        generatons = corrosGeneratons;
         seed++;
+        genIndex = 0;
     }
 
     /// <summary>
     /// 평가함수 
     /// </summary>
-    /// <param name="isProtected"></param>
-    /// <param name="distance"></param>
-    public void SetFitness(bool isProtected, float distance = 0)
+    public void SetFitness(GameObject leftPoint, GameObject rightPoint, GameObject projectileObj)
+    {
+        float leftdist = maxDist - (leftPoint.transform.position - projectileObj.transform.position).magnitude;
+        if(leftdist < 0)
+        {
+            leftdist = 0;
+        }
+        float rightdist = maxDist - (rightPoint.transform.position - projectileObj.transform.position).magnitude;
+        if (rightdist < 0)
+        {
+            rightdist = 0;
+        }
+        float total = rightdist + leftdist;
+        if (total >= 30f)
+        {
+            total = 30f;
+        }
+        fitness[genIndex] = total;
+    }
+
+    public void UpGenIndex()
     {
         genIndex++;
         if (genIndex >= 64)
         {
-            genIndex = 0;
+            StartCoroutine(SelecteGen());
         }
     }
 
@@ -290,6 +407,7 @@ public class InputSensor : MonoBehaviour
         for (int c = 0; c < 64; c++)
         {
             generatons.Add(InitGeneratons());
+            fitness.Add(0);
         }
     }
     public List<float[,]> InitGeneratons()
@@ -300,14 +418,14 @@ public class InputSensor : MonoBehaviour
         {
             for (int i = 0; i < 7; i++)
             {
-                ih[h, i] = UnityEngine.Random.value;
+                ih[h, i] = UnityEngine.Random.Range(10,80);
             }
         }
         for (int o = 0; o < 4; o++)
         {
             for (int h = 0; h < 5; h++)
             {
-                ho[o, h] = UnityEngine.Random.value;
+                ho[o, h] = UnityEngine.Random.Range(10,80);
             }
         }
         List<float[,]> generaton = new List<float[,]>();
