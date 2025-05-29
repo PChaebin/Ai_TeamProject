@@ -519,7 +519,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -640,6 +640,9 @@ MonoBehaviour:
   rightArm: {fileID: 476920331}
   inputLayerNode: []
   outputLayerNode: []
+  genIndex: 0
+  fitness: []
+  seed: 1
 --- !u!61 &1422878810 stripped
 BoxCollider2D:
   m_CorrespondingSourceObject: {fileID: 478456942293448649, guid: 58778501132af76448b157a5c951e10f,
@@ -903,7 +906,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

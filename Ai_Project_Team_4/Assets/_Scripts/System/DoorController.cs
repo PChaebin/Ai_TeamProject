@@ -6,8 +6,16 @@ public class DoorController : MonoBehaviour
 {
     public List<int> passwordList;
 
-    private void Start()
+    void Start()
     {
-        //passwordList = ItemSpawner.GetPasswordList();
+        ItemSpawner spawner = FindObjectOfType<ItemSpawner>();
+        if (spawner != null)
+        {
+            passwordList = spawner.GetPasswordList();
+        }
+        else
+        {
+            Debug.LogError("스포너가 없습니다.");
+        }
     }
 }
