@@ -44,14 +44,23 @@ public class InputSensor : MonoBehaviour
     public int seed = 1;
 
     //개체수
-    [Header("generaton n 64")]
-    public int genN = 64;
+    [Header("generaton n")]
+    public int genN = 128;
+    [Header("gen I")]
+    public int genI = 35;
+    [Header("gen O")]
+    public int genO = 20;
     //최대세대
-    [Header("seed n 100")]
+    [Header("seed n")]
     public int seedN = 100;
     //엘리트 수
-    [Header("eleitm 4")]
+    [Header("eleitm")]
     public int ele = 4;
+
+    [Header("Mutate1")]
+    public float mutate1 = 55f;
+    [Header("Mutate2")]
+    public float mutate2 = 35f;
 
     //팔과탄환최대거리
     [Header("maxDist")]
@@ -170,7 +179,7 @@ public class InputSensor : MonoBehaviour
         List<List<float[,]>> corrosGeneratons = new List<List<float[,]>>();
 
         // 엘리트 선택 후 다음 세대에 바로 넣어줌 (4개)
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < ele; i++)
         {
             float bestValue = fitness.Max();
             int bestIndex = fitness.FindIndex(x => x == bestValue);
@@ -186,7 +195,7 @@ public class InputSensor : MonoBehaviour
         List<List<float[,]>> tonement = new List<List<float[,]>>();
 
         // 토너먼트진행, 64개의 절반인 32개 선택
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < genN/2; i++)
         {
             // Get first random index
             firstIndex = UnityEngine.Random.Range(0, generatons.Count);
@@ -268,7 +277,33 @@ public class InputSensor : MonoBehaviour
             corrosGeneratons.Add(child2);
             yield return new WaitForSeconds(0.02f);
         }
+
+        float mutate = 0;
+        int idx = 0;
+        int x = 0;
+        int y = 0;
+
+        for (int j =3; j < genN; j++)
+        {
+            mutate = UnityEngine.Random.value * 100;
+            if(mutate < mutate1)
+            {
+                idx = UnityEngine.Random.Range(0, genI);
+                x = idx % 5;
+                y = idx / 5;
+                corrosGeneratons[j][0][x,y] = UnityEngine.Random.Range(10,80);
+            }
+            if (mutate < mutate2)
+            {
+                idx = UnityEngine.Random.Range(0, genO);
+                x = idx % 4;
+                y = idx / 4;
+                corrosGeneratons[j][1][x, y] = UnityEngine.Random.Range(10, 80);
+            }
+        }
+
         generatons = corrosGeneratons;
+
         seed++;
         genIndex = 0;
     }
@@ -293,7 +328,7 @@ public class InputSensor : MonoBehaviour
         {
             total = 30f;
         }
-        fitness[genIndex] = total;
+        fitness[genIndex] += total;
     }
 
     public void UpGenIndex()
@@ -404,7 +439,7 @@ public class InputSensor : MonoBehaviour
     /// </summary>
     public void InitObject()
     {
-        for (int c = 0; c < 64; c++)
+        for (int c = 0; c < genN; c++)
         {
             generatons.Add(InitGeneratons());
             fitness.Add(0);
