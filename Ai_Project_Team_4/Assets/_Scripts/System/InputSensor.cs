@@ -3,9 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.IO;
+using UnityEngine.UI;
+using System.Text;
 
 public class InputSensor : MonoBehaviour
 {
+
     //감지영역
     [Header("collider")]
     public Collider2D Collider;
@@ -32,6 +36,13 @@ public class InputSensor : MonoBehaviour
     [Header("OutputLayerNode")]
     [SerializeField]
     private float[] outputLayerNode;
+
+    [Header("Uses I")]
+    float[,] weightIH;
+    [Header("Uses O")]
+    float[,] weightHO;
+    [Header("final gen")]
+    List<float[,]> finalGen;
 
     //유전자개체 리스트와 객체인덱스와 세대수와 평가함수
     [Header("Generaton")]
@@ -141,8 +152,8 @@ public class InputSensor : MonoBehaviour
     /// <returns></returns>
     public float[] NerualNetwork(float[] inputs)
     {
-        float[,] weightIH = generatons[genIndex][0];
-        float[,] weightHO = generatons[genIndex][1];
+        weightIH = generatons[genIndex][0];
+        weightHO = generatons[genIndex][1];
         // 1) 은닉층 계산: hidden = weightIH × inputs
         var hidden = new float[5];
         for (int h = 0; h < 5; h++)
@@ -289,16 +300,16 @@ public class InputSensor : MonoBehaviour
             if(mutate < mutate1)
             {
                 idx = UnityEngine.Random.Range(0, genI);
-                x = idx % 5;
-                y = idx / 5;
-                corrosGeneratons[j][0][x,y] = UnityEngine.Random.Range(10,80);
+                y = idx % 5;
+                x = idx / 5;
+                corrosGeneratons[j][0][y,x] = UnityEngine.Random.Range(10,80);
             }
             if (mutate < mutate2)
             {
                 idx = UnityEngine.Random.Range(0, genO);
-                x = idx % 4;
-                y = idx / 4;
-                corrosGeneratons[j][1][x, y] = UnityEngine.Random.Range(10, 80);
+                y = idx % 4;
+                x = idx / 4;
+                corrosGeneratons[j][1][y, x] = UnityEngine.Random.Range(10, 80);
             }
         }
 
@@ -306,6 +317,147 @@ public class InputSensor : MonoBehaviour
 
         seed++;
         genIndex = 0;
+    }
+
+    public void WriteFileGreateGen()
+    {
+        float mx = fitness.Max();
+        int idx = fitness.IndexOf(mx);
+        List<float[,]> eleGen = generatons[idx];
+        
+        string path = Path.Combine("D:\\UnityHub\\UnityGame\\Ai_TeamProject\\Ai_Project_Team_4\\Assets\\_Scripts\\System", "eletism");
+        using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
+        {
+            for (int arrayIndex = 0; arrayIndex < eleGen.Count; arrayIndex++)
+            {
+                float[,] array2D = eleGen[arrayIndex];
+                int rows = array2D.GetLength(0);
+                int cols = array2D.GetLength(1);
+
+                // 배열 구분을 위해 헤더 라인 삽입 (선택 사항)
+                writer.WriteLine($"# Array {arrayIndex} (행: {rows}, 열: {cols})");
+
+                // 각 행(row)마다 데이터를 한 줄에 콤마(또는 탭)로 구분해서 작성
+                for (int r = 0; r < rows; r++)
+                {
+                    StringBuilder lineBuilder = new StringBuilder();
+                    for (int c = 0; c < cols; c++)
+                    {
+                        lineBuilder.Append(array2D[r, c].ToString());
+
+                        // 마지막 열이 아니면 구분자 추가
+                        if (c < cols - 1)
+                            lineBuilder.Append(",");  // 콤마(,)로 구분. 필요 시 '\t'로 변경 가능
+                    }
+
+                    writer.WriteLine(lineBuilder.ToString());
+                }
+
+                // 배열 간에 빈 줄 하나 추가 (선택 사항)
+                writer.WriteLine();
+            }
+        }
+        Debug.Log($"데이터를 다음 경로에 저장했습니다: {path}");
+
+    }
+
+    public List<float[,]> ReadFileGreateGen()
+    {
+        List<float[,]> result = new List<float[,]>();
+        string path = Path.Combine("D:\\UnityHub\\UnityGame\\Ai_TeamProject\\Ai_Project_Team_4\\Assets\\_Scripts\\System", "eletism");
+        if (!File.Exists(path))
+        {
+            Debug.LogWarning($"파일이 존재하지 않습니다: {path}");
+            return result;
+        }
+
+        // 모든 라인을 한꺼번에 읽어온다 (UTF8)
+        string[] lines = File.ReadAllLines(path, Encoding.UTF8);
+
+        int i = 0;
+        while (i < lines.Length)
+        {
+            string line = lines[i].Trim();
+
+            // 빈 줄(또는 공백)인 경우 다음 라인으로 넘어감
+            if (string.IsNullOrEmpty(line))
+            {
+                i++;
+                continue;
+            }
+
+            // 헤더 형식: "# Array {index} (행: {rows}, 열: {cols})"
+            if (line.StartsWith("# Array"))
+            {
+                // 헤더를 건너뛴 뒤, 실제 데이터 라인을 수집한다.
+                i++;
+
+                // 한 배열의 각 행(row)을 담을 리스트
+                List<string> rowLines = new List<string>();
+
+                // 빈 줄이 나오기 전까지 계속 읽는다.
+                while (i < lines.Length && !string.IsNullOrEmpty(lines[i].Trim()))
+                {
+                    rowLines.Add(lines[i].Trim());
+                    i++;
+                }
+
+                // rowLines.Count가 곧 행 개수
+                int rowCount = rowLines.Count;
+                if (rowCount == 0)
+                {
+                    // 만약 빈 배열(헤더만 있고 데이터 없음)인 경우, 0×0 배열로 처리하거나 건너뛸지 결정
+                    result.Add(new float[0, 0]);
+                    continue;
+                }
+
+                // 첫 행에서 콤마 개수로 열(column) 개수를 추정
+                string[] firstTokens = rowLines[0].Split(',');
+                int colCount = firstTokens.Length;
+
+                // 2D 배열 생성
+                float[,] array2D = new float[rowCount, colCount];
+
+                // 실제 데이터 파싱
+                for (int r = 0; r < rowCount; r++)
+                {
+                    string[] tokens = rowLines[r].Split(',');
+
+                    // (안정성) 열 개수가 다를 경우, 작은 쪽만 처리
+                    int tokensToRead = Mathf.Min(tokens.Length, colCount);
+
+                    for (int c = 0; c < tokensToRead; c++)
+                    {
+                        // float.Parse 로 문자열을 실수로 변환
+                        if (float.TryParse(tokens[c], out float parsed))
+                        {
+                            array2D[r, c] = parsed;
+                        }
+                        else
+                        {
+                            // 파싱 실패 시 로그 남기고 0으로 채움
+                            Debug.LogWarning($"[{r},{c}] 위치 값 '{tokens[c]}'를 float로 파싱할 수 없습니다. 0으로 설정합니다.");
+                            array2D[r, c] = 0f;
+                        }
+                    }
+
+                    // 만약 토큰 수가 colCount보다 적다면 나머지 열은 기본 0으로 남음
+                }
+
+                // 완성된 2D 배열을 결과 리스트에 추가
+                result.Add(array2D);
+
+                // now i는 빈 줄(또는 파일 끝)위치에 있으므로, 빈 줄을 건너뛸 것
+                // (while 루프 시작부에서 빈 줄을 걸러줌)
+            }
+            else
+            {
+                // 헤더가 아닌(예상치 못한) 일반 라인이 온 경우 건너뛴다.
+                Debug.LogWarning($"헤더('# Array')가 아닌 예기치 않은 라인: '{line}' (라인 {i + 1})");
+                i++;
+            }
+        }
+        return result;
     }
 
     /// <summary>
