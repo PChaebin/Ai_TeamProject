@@ -52,7 +52,13 @@ public class ItemSpawner : MonoBehaviour
     }
     public void CallRespawn()
     {
-        StartCoroutine(SpawnProjectile(3f));
+        for (int i = 0; i < projectileNum; i++)
+        {
+            if (projectileScriptsList[i].GetIsDestoryed())
+            {
+                StartCoroutine(ReSpawnProjectile(3f, i));
+            }
+        }
     }
 
     public void CreatePassword()
@@ -61,7 +67,7 @@ public class ItemSpawner : MonoBehaviour
         {
             float x = Random.Range(-10, 11);
             float y = Random.Range(-10, 11);
-            Vector3 randomPos = new Vector3(x, y, 0);
+            Vector3 randomPos = new Vector3(x, y, -1);
             GameObject passwordInst = Instantiate(password, randomPos, password.transform.rotation);
 
             int num = Random.Range(0, 10);
@@ -101,11 +107,27 @@ public class ItemSpawner : MonoBehaviour
             projectileScriptsList[i].SetSaved();
         }
     }
-    public bool CheckAllProjectileDestory()
+
+    IEnumerator ReSpawnProjectile(float time, int i)
+    {
+       
+        yield return new WaitForSeconds(time);
+
+        float x = Random.Range(-10, 11);
+        float y = Random.Range(-10, 11);
+        Vector3 randomPos = new Vector3(x, y, 0);
+        projectileList[i].transform.position = randomPos;
+        projectileList[i].transform.up = Vector3.zero;
+
+        projectileScriptsList[i].OnRender();
+        projectileScriptsList[i].SetSaved();
+       
+    }
+    public bool CheckAllProjectileLive()
     {
         for(int i = 0; i < projectileNum; i++)
         {
-            if(!projectileScriptsList[i].GetIsDestoryed())
+            if(projectileScriptsList[i].GetIsDestoryed())
             {
                 return false;
             }
