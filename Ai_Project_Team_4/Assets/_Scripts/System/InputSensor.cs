@@ -3,9 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.IO;
+using UnityEngine.UI;
+using System.Text;
 
 public class InputSensor : MonoBehaviour
 {
+    [Header("TestLearning")]
+    public LerningSystem system;
+
     //감지영역
     [Header("collider")]
     public Collider2D Collider;
@@ -33,35 +39,27 @@ public class InputSensor : MonoBehaviour
     [SerializeField]
     private float[] outputLayerNode;
 
-    //유전자개체 리스트와 객체인덱스와 세대수와 평가함수
-    [Header("Generaton")]
-    public List<List<float[,]>> generatons = new List<List<float[,]>>();
-    [Header("current Generaton Index")]
-    public int genIndex = 0;
-    [Header("Fitness")]
-    public List<float> fitness = new List<float>();
-    [Header("Genraton Seed")]
-    public int seed = 1;
-
-    //개체수
-    [Header("generaton n 64")]
-    public int genN = 64;
-    //최대세대
-    [Header("seed n 100")]
-    public int seedN = 100;
-    //엘리트 수
-    [Header("eleitm 4")]
-    public int ele = 4;
-
-    //팔과탄환최대거리
-    [Header("maxDist")]
-    public float maxDist = 1.5f;
+    [Header("Uses I")]
+    float[,] weightIH;
+    [Header("Uses O")]
+    float[,] weightHO;
+    [Header("final gen")]
+    List<float[,]> finalGen;
 
     // Update is called once per frame
     void Start()
     {
-        InitObject();//유전자 개체 64개 생성  
-        outputLayerNode = new float[4] { 10,0,0,0 };
+        outputLayerNode = new float[4] { 0,0,0,0 };
+        if(system != null)
+        {
+            system.InitObject();
+            weightIH = system.Getmaterix(0);
+            weightHO = system.Getmaterix(1);
+            return;
+        }
+        finalGen = ReadFileGreateGen();
+        weightIH = finalGen[0];
+        weightHO = finalGen[1];
     }
 
     private void FixedUpdate()
@@ -72,7 +70,17 @@ public class InputSensor : MonoBehaviour
             rotateAction(outputLayerNode);
         }
     }
-
+    public void UpGenIndex()
+    {
+        int a = system.genIndexUP();
+        if (a == -1)
+        {
+            system.WriteFileGreateGen();
+            return;
+        }
+        weightIH = system.Getmaterix(0);
+        weightHO = system.Getmaterix(1);
+    }
     /// <summary>
     /// 발사체 감지후 입력값 생성하고 팔 돌리는 출력 값 반환 
     /// </summary>
@@ -90,10 +98,13 @@ public class InputSensor : MonoBehaviour
             SetPositionPlusToRightArm(GetPositionPlusToRightArm(collision.gameObject));
             SetPositionMinusToRightArm(GetPositionMinusToRightArm(collision.gameObject));
 
-            outputLayerNode = NerualNetwork(inputLayerNode);
-            SetFitness(leftArmPoint, rightArmPoint, collision.gameObject);
+            outputLayerNode = NerualNetwork(inputLayerNode, weightIH, weightHO);
         }
         isTurning = false;
+        if(system != null)
+        {
+            system.SetFitness(leftArmPoint, rightArmPoint, collision.gameObject);
+        }
     }
 
     /// <summary>
@@ -130,10 +141,8 @@ public class InputSensor : MonoBehaviour
     /// </summary>
     /// <param name="inputs"></param>
     /// <returns></returns>
-    public float[] NerualNetwork(float[] inputs)
+    public float[] NerualNetwork(float[] inputs,float[,] weightInstIH, float[,] weightInstHO)
     {
-        float[,] weightIH = generatons[genIndex][0];
-        float[,] weightHO = generatons[genIndex][1];
         // 1) 은닉층 계산: hidden = weightIH × inputs
         var hidden = new float[5];
         for (int h = 0; h < 5; h++)
@@ -141,11 +150,10 @@ public class InputSensor : MonoBehaviour
             float sum = 0f;
             for (int i = 0; i < 7; i++)
             {
-                sum += weightIH[h, i] * inputs[i];
+                sum += weightInstIH[h, i] * inputs[i];
             }
             hidden[h] = Sigmoid(sum);
         }
-
         // 2) 출력층 계산: output = weightHO × hidden
         var output = new float[4];
         for (int o = 0; o < 4; o++)
@@ -153,7 +161,7 @@ public class InputSensor : MonoBehaviour
             float sum = 0f;
             for (int h = 0; h < 5; h++)
             {
-                sum += weightHO[o, h] * hidden[h];
+                sum += weightInstHO[o, h] * hidden[h];
             }
             output[o] = Sigmoid(sum);
         }
@@ -161,148 +169,103 @@ public class InputSensor : MonoBehaviour
         return output;
     }
 
-    /// <summary>
-    /// 엘리트, 토너먼트 선택과 교배 함수 
-    /// </summary>
-    IEnumerator SelecteGen()
+    public List<float[,]> ReadFileGreateGen()
     {
-        //다음 세대에 넣을 것
-        List<List<float[,]>> corrosGeneratons = new List<List<float[,]>>();
-
-        // 엘리트 선택 후 다음 세대에 바로 넣어줌 (4개)
-        for (int i = 0; i < 4; i++)
+        List<float[,]> result = new List<float[,]>();
+        string path = Path.Combine("D:\\UnityHub\\UnityGame\\Ai_TeamProject\\Ai_Project_Team_4\\Assets\\_Scripts\\System", "eletism");
+        if (!File.Exists(path))
         {
-            float bestValue = fitness.Max();
-            int bestIndex = fitness.FindIndex(x => x == bestValue);
-            corrosGeneratons.Add(generatons[bestIndex]);
+            Debug.LogWarning($"파일이 존재하지 않습니다: {path}");
+            return result;
         }
 
-        int firstIndex;
-        int secondIndex;
+        // 모든 라인을 한꺼번에 읽어온다 (UTF8)
+        string[] lines = File.ReadAllLines(path, Encoding.UTF8);
 
-        float gen1;
-        float gen2;
-
-        List<List<float[,]>> tonement = new List<List<float[,]>>();
-
-        // 토너먼트진행, 64개의 절반인 32개 선택
-        for (int i = 0; i < 32; i++)
+        int i = 0;
+        while (i < lines.Length)
         {
-            // Get first random index
-            firstIndex = UnityEngine.Random.Range(0, generatons.Count);
+            string line = lines[i].Trim();
 
-            // Get second random index ensuring it's different from firstIndex
-            secondIndex = UnityEngine.Random.Range(0, generatons.Count - 1);
-            if (secondIndex >= firstIndex)
-                secondIndex++;
-
-            gen1 = fitness[firstIndex];
-            gen2 = fitness[secondIndex];
-
-            if (gen1 >= gen2)
+            // 빈 줄(또는 공백)인 경우 다음 라인으로 넘어감
+            if (string.IsNullOrEmpty(line))
             {
-                tonement.Add(generatons[firstIndex]);
+                i++;
+                continue;
+            }
+
+            // 헤더 형식: "# Array {index} (행: {rows}, 열: {cols})"
+            if (line.StartsWith("# Array"))
+            {
+                // 헤더를 건너뛴 뒤, 실제 데이터 라인을 수집한다.
+                i++;
+
+                // 한 배열의 각 행(row)을 담을 리스트
+                List<string> rowLines = new List<string>();
+
+                // 빈 줄이 나오기 전까지 계속 읽는다.
+                while (i < lines.Length && !string.IsNullOrEmpty(lines[i].Trim()))
+                {
+                    rowLines.Add(lines[i].Trim());
+                    i++;
+                }
+
+                // rowLines.Count가 곧 행 개수
+                int rowCount = rowLines.Count;
+                if (rowCount == 0)
+                {
+                    // 만약 빈 배열(헤더만 있고 데이터 없음)인 경우, 0×0 배열로 처리하거나 건너뛸지 결정
+                    result.Add(new float[0, 0]);
+                    continue;
+                }
+
+                // 첫 행에서 콤마 개수로 열(column) 개수를 추정
+                string[] firstTokens = rowLines[0].Split(',');
+                int colCount = firstTokens.Length;
+
+                // 2D 배열 생성
+                float[,] array2D = new float[rowCount, colCount];
+
+                // 실제 데이터 파싱
+                for (int r = 0; r < rowCount; r++)
+                {
+                    string[] tokens = rowLines[r].Split(',');
+
+                    // (안정성) 열 개수가 다를 경우, 작은 쪽만 처리
+                    int tokensToRead = Mathf.Min(tokens.Length, colCount);
+
+                    for (int c = 0; c < tokensToRead; c++)
+                    {
+                        // float.Parse 로 문자열을 실수로 변환
+                        if (float.TryParse(tokens[c], out float parsed))
+                        {
+                            array2D[r, c] = parsed;
+                        }
+                        else
+                        {
+                            // 파싱 실패 시 로그 남기고 0으로 채움
+                            Debug.LogWarning($"[{r},{c}] 위치 값 '{tokens[c]}'를 float로 파싱할 수 없습니다. 0으로 설정합니다.");
+                            array2D[r, c] = 0f;
+                        }
+                    }
+
+                    // 만약 토큰 수가 colCount보다 적다면 나머지 열은 기본 0으로 남음
+                }
+
+                // 완성된 2D 배열을 결과 리스트에 추가
+                result.Add(array2D);
+
+                // now i는 빈 줄(또는 파일 끝)위치에 있으므로, 빈 줄을 건너뛸 것
+                // (while 루프 시작부에서 빈 줄을 걸러줌)
             }
             else
             {
-                tonement.Add(generatons[secondIndex]);
+                // 헤더가 아닌(예상치 못한) 일반 라인이 온 경우 건너뛴다.
+                Debug.LogWarning($"헤더('# Array')가 아닌 예기치 않은 라인: '{line}' (라인 {i + 1})");
+                i++;
             }
         }
-
-        int par1indx;
-        int par2indx;
-
-        List<float[,]> parent1;
-        List<float[,]> parent2;
-
-        // 다점 교배 진행
-        while (corrosGeneratons.Count < generatons.Count)
-        {
-            List<float[,]> child1 = new List<float[,]>();
-            List<float[,]> child2 = new List<float[,]>();
-
-            par1indx = UnityEngine.Random.Range(0, tonement.Count);
-            par2indx = UnityEngine.Random.Range(0, tonement.Count -1 );
-            if (par2indx >= par1indx)
-                par2indx++;
-
-            parent1 = tonement[par1indx];
-            parent2 = tonement[par2indx];
-
-            // 1) 절단점 개수 지정
-            int numPoints = 2;
-
-            // 2) [1, parent1.Count) 범위에서 중복 없이 절단점 생성
-            List<int> points = new List<int>();
-            while (points.Count < numPoints)
-            {
-                int p = UnityEngine.Random.Range(1, parent1.Count);
-                if (!points.Contains(p))
-                    points.Add(p);
-            }
-            points.Sort();            // 오름차순 정렬
-            points.Add(parent1.Count); // 마지막은 전체 길이
-
-            // 4) 절단점 사이 구간을 번갈아 가며 붙여넣기
-            int last = 0;
-            bool takeFromP1 = true;
-            foreach (int cut in points)
-            {
-                int len = cut - last;
-                if (takeFromP1)
-                {
-                    // parent1 → child1, parent2 → child2
-                    child1.AddRange(parent1.GetRange(last, len));
-                    child2.AddRange(parent2.GetRange(last, len));
-                }
-                else
-                {
-                    // parent2 → child1, parent1 → child2
-                    child1.AddRange(parent2.GetRange(last, len));
-                    child2.AddRange(parent1.GetRange(last, len));
-                }
-                takeFromP1 = !takeFromP1;
-                last = cut;
-            }
-            corrosGeneratons.Add(child1);
-            corrosGeneratons.Add(child2);
-            yield return new WaitForSeconds(0.02f);
-        }
-        generatons = corrosGeneratons;
-        seed++;
-        genIndex = 0;
-    }
-
-    /// <summary>
-    /// 평가함수 
-    /// </summary>
-    public void SetFitness(GameObject leftPoint, GameObject rightPoint, GameObject projectileObj)
-    {
-        float leftdist = maxDist - (leftPoint.transform.position - projectileObj.transform.position).magnitude;
-        if(leftdist < 0)
-        {
-            leftdist = 0;
-        }
-        float rightdist = maxDist - (rightPoint.transform.position - projectileObj.transform.position).magnitude;
-        if (rightdist < 0)
-        {
-            rightdist = 0;
-        }
-        float total = rightdist + leftdist;
-        if (total >= 30f)
-        {
-            total = 30f;
-        }
-        fitness[genIndex] = total;
-    }
-
-    public void UpGenIndex()
-    {
-        genIndex++;
-        if (genIndex >= 64)
-        {
-            StartCoroutine(SelecteGen());
-        }
+        return result;
     }
 
     /// <summary>
@@ -399,54 +362,6 @@ public class InputSensor : MonoBehaviour
         return 0f;
     }
 
-    /// <summary>
-    /// 신경망 가중치 유전자조합을 가진 객체 64개 생성 
-    /// </summary>
-    public void InitObject()
-    {
-        for (int c = 0; c < 64; c++)
-        {
-            generatons.Add(InitGeneratons());
-            fitness.Add(0);
-        }
-    }
-    public List<float[,]> InitGeneratons()
-    {
-        float[,] ih = new float[5, 7];
-        float[,] ho = new float[4, 5];
-        for (int h = 0; h < 5; h++)
-        {
-            for (int i = 0; i < 7; i++)
-            {
-                ih[h, i] = UnityEngine.Random.Range(10,80);
-            }
-        }
-        for (int o = 0; o < 4; o++)
-        {
-            for (int h = 0; h < 5; h++)
-            {
-                ho[o, h] = UnityEngine.Random.Range(10,80);
-            }
-        }
-        List<float[,]> generaton = new List<float[,]>();
-        generaton.Add(ih);
-        generaton.Add(ho);
-        return generaton;
-    }
-    public float[,] DeepCopy(float[,] source)
-    {
-        int rows = source.GetLength(0);
-        int cols = source.GetLength(1);
-        var dest = new float[rows, cols];
-        for (int y = 0; y < rows; y++)
-        {
-            for (int x = 0; x < cols; x++)
-            {
-                dest[y, x] = source[y, x];
-            }
-        }
-        return dest;
-    }
     private static float Sigmoid(float x)
     {
         // e^(-x) 계산

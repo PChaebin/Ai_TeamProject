@@ -53,7 +53,7 @@ public class Projectile : MonoBehaviour
 
     public void CheckRespawn()
     {
-        if (spawner.CheckAllProjectileDestory())
+        if (!spawner.CheckAllProjectileLive())
         {
             spawner.CallRespawn();
         }

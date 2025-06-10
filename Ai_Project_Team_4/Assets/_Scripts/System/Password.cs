@@ -6,10 +6,11 @@ using UnityEngine.UI;
 
 public class Password : MonoBehaviour
 {
-    public TextMeshPro num;
+    public List<Sprite> sprites = new List<Sprite>();
+    public SpriteRenderer current;
 
     public void SetNum(int passwordNum)
     {
-        num.text = passwordNum.ToString();
+        current.sprite = sprites[passwordNum];
     }
 }
