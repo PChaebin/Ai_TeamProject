@@ -31,6 +31,7 @@ public class EnemyFSM : MonoBehaviour
     private Vector2 patrolDirection;
     private float patrolTimer = 0f;
     public float patrolChangeTime = 2f;
+    public float idleToPatrolTime = 1f;
 
     [Header("Detect 설정")]
     private float detectDuration = 1.5f;
@@ -41,6 +42,7 @@ public class EnemyFSM : MonoBehaviour
 
     [Header("Chase 설정")]
     public float chaseSpeed = 3f;
+    public float wallCheckDistance = 0.5f;
 
     [Header("Block 설정")]
     private float blockDuration = 1f;
@@ -120,7 +122,15 @@ public class EnemyFSM : MonoBehaviour
     void Idle() 
     {
         if (PlayerDetected())
+        {
             ChangeState(State.Detect);
+            return;
+        }
+
+        if (stateTimer >= idleToPatrolTime)
+        {
+            ChangeState(State.Patrol);
+        }
     }
 
     /// <summary>
@@ -136,7 +146,16 @@ public class EnemyFSM : MonoBehaviour
             patrolTimer = 0f;
         }
 
-        transform.Translate(patrolDirection * speed * Time.deltaTime);
+        if (!IsWallInDirection(patrolDirection, wallCheckDistance))
+        {
+            transform.Translate(patrolDirection * speed * Time.deltaTime);
+        }
+        else
+        {
+            // 벽에 부딪히면 방향 바꾸기
+            patrolDirection = UnityEngine.Random.insideUnitCircle.normalized;
+            patrolTimer = 0f;
+        }
 
         if (PlayerDetected())
             ChangeState(State.Detect);
@@ -159,6 +178,11 @@ public class EnemyFSM : MonoBehaviour
         {
             ChangeState(State.Roar);
         }
+
+        if (!PlayerDetected())
+        {
+            ChangeState(State.Patrol);
+        }
     }
 
     /// <summary>
@@ -180,14 +204,10 @@ public class EnemyFSM : MonoBehaviour
         if (player == null) return;
 
         Vector2 dir = (player.position - transform.position).normalized;
-        transform.Translate(dir * chaseSpeed * Time.deltaTime);
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, distance, LayerMask.GetMask("Wall"));
-
-        if (hit.collider != null)
+        if (!IsWallInDirection(dir, wallCheckDistance))
         {
-            // 벽에 부딪히면 추적하지 않음
-            return;
+            transform.Translate(dir * chaseSpeed * Time.deltaTime);
         }
 
         if (!PlayerDetected())
@@ -231,8 +251,7 @@ public class EnemyFSM : MonoBehaviour
 
         // 벽에 막혔으면 감지 실패
         if (hit.collider != null)
-        {
-            
+        {            
             return false;
         }
 
@@ -254,6 +273,13 @@ public class EnemyFSM : MonoBehaviour
             ChangeState(State.Stun);
         }
     }
+
+    private bool IsWallInDirection(Vector2 direction, float checkDistance)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, LayerMask.GetMask("Wall"));
+        return hit.collider != null;
+    }
+
     #region 기즈모 그리기
     private void OnDrawGizmos()
     {
