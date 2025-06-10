@@ -182,6 +182,14 @@ public class EnemyFSM : MonoBehaviour
         Vector2 dir = (player.position - transform.position).normalized;
         transform.Translate(dir * chaseSpeed * Time.deltaTime);
 
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, distance, LayerMask.GetMask("Wall"));
+
+        if (hit.collider != null)
+        {
+            // 벽에 부딪히면 추적하지 않음
+            return;
+        }
+
         if (!PlayerDetected())
         {
             ChangeState(State.Patrol);
@@ -246,7 +254,7 @@ public class EnemyFSM : MonoBehaviour
             ChangeState(State.Stun);
         }
     }
-
+    #region 기즈모 그리기
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -263,4 +271,5 @@ public class EnemyFSM : MonoBehaviour
         UnityEditor.Handles.Label(transform.position + Vector3.up * 1.5f, currentState.ToString());
 #endif
     }
+    #endregion
 }
