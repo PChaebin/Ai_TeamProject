@@ -28,6 +28,10 @@ public class TestEnv : MonoBehaviour
 
     public float current;
     public float cool = 5f;
+
+    public string te;
+    public List<float[,]> text = new List<float[,]>();
+
     // Start is called before the first frame update
     void Start()
     {

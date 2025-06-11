@@ -14,22 +14,33 @@ public class LerningSystem : MonoBehaviour
     public int genIndex = 0;
     [Header("Fitness")]
     public List<float> fitness = new List<float>();
-    [Header("Genraton Seed")]
-    public int seed = 1;
+    [Header("current Seed")]
+    public int seedIndex = 1;
 
     //개체수
     [Header("generaton n")]
-    public int genN = 128;
+    public int genN = 8;
     [Header("gen I")]
     public int genI = 35;
     [Header("gen O")]
     public int genO = 20;
+
     //최대세대
     [Header("seed n")]
-    public int seedN = 100;
+    public int seedN = 4;
     //엘리트 수
     [Header("eleitm")]
-    public int ele = 4;
+    public int ele = 2;
+
+    //인풋
+    [Header("inputN")]
+    public int inputN = 7;
+    //히든
+    [Header("hiddenN")]
+    public int hiddenN = 5;
+    //아웃풋
+    [Header("outputN")]
+    public int outputN = 4;
 
     [Header("Mutate1")]
     public float mutate1 = 55f;
@@ -45,17 +56,33 @@ public class LerningSystem : MonoBehaviour
         return generatons[genIndex][i];
     }
 
-    public int genIndexUP()
+    public int genIndexAndSeedUP()
     {
         genIndex++;
-        if(genIndex >= 128)
+        if(genIndex >= genN)
         {
+            seedIndex++;
+            genIndex = 0;
             return -1;
         }
         return genIndex;
     }
 
-    public List<List<float[,]>> SelectEleti(List<float> fitList)
+    public bool IsOverSeed()
+    {
+        if(seedIndex > seedN)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void NextGens()
+    {
+        generatons = Mutate(SelecteGen(Tournament(), SelectEleti()));
+    }
+
+    public List<List<float[,]>> SelectEleti()
     {
         //다음 세대에 넣을 것
         List<List<float[,]>> corrosGeneratons = new List<List<float[,]>>();
@@ -186,20 +213,20 @@ public class LerningSystem : MonoBehaviour
             if (mutate < mutate1)
             {
                 idx = UnityEngine.Random.Range(0, genI);
-                y = idx % 5;
-                x = idx / 5;
-                corrosGeneratons[j][0][y, x] = UnityEngine.Random.Range(10, 80);
+                x = idx % hiddenN;
+                y = idx % inputN;
+                corrosGeneratons[j][0][x, y] = UnityEngine.Random.Range(-1f, 1f);
             }
             if (mutate < mutate2)
             {
                 idx = UnityEngine.Random.Range(0, genO);
-                y = idx % 4;
-                x = idx / 4;
-                corrosGeneratons[j][1][y, x] = UnityEngine.Random.Range(10, 80);
+                x = idx % outputN;
+                y = idx % hiddenN;
+                corrosGeneratons[j][1][x, y] = UnityEngine.Random.Range(-1f, 1f);
             }
         }
-        seed++;
-        genIndex = 0;
+
+        fitness.Clear();
 
         return corrosGeneratons;
     }
@@ -240,20 +267,20 @@ public class LerningSystem : MonoBehaviour
     }
     public List<float[,]> InitGeneratons()
     {
-        float[,] ih = new float[5, 7];
-        float[,] ho = new float[4, 5];
-        for (int h = 0; h < 5; h++)
+        float[,] ih = new float[hiddenN, inputN];
+        float[,] ho = new float[outputN, hiddenN];
+        for (int h = 0; h < hiddenN; h++)
         {
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < inputN; i++)
             {
-                ih[h, i] = UnityEngine.Random.Range(10, 80);
+                ih[h, i] = UnityEngine.Random.Range(-1f, 1f);
             }
         }
-        for (int o = 0; o < 4; o++)
+        for (int o = 0; o < outputN; o++)
         {
-            for (int h = 0; h < 5; h++)
+            for (int h = 0; h < hiddenN; h++)
             {
-                ho[o, h] = UnityEngine.Random.Range(10, 80);
+                ho[o, h] = UnityEngine.Random.Range(-1f, 1f);
             }
         }
         List<float[,]> generaton = new List<float[,]>();
@@ -281,40 +308,30 @@ public class LerningSystem : MonoBehaviour
         int idx = fitness.IndexOf(mx);
         List<float[,]> eleGen = generatons[idx];
 
-        string path = Path.Combine("D:\\UnityHub\\UnityGame\\Ai_TeamProject\\Ai_Project_Team_4\\Assets\\_Scripts\\System", "eletism");
-        using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
+        string bestGen = "";
+        for(int i = 0; i < hiddenN; i++)
         {
-            for (int arrayIndex = 0; arrayIndex < eleGen.Count; arrayIndex++)
+            for (int j = 0; j < inputN; j++)
             {
-                float[,] array2D = eleGen[arrayIndex];
-                int rows = array2D.GetLength(0);
-                int cols = array2D.GetLength(1);
-
-                // 배열 구분을 위해 헤더 라인 삽입 (선택 사항)
-                writer.WriteLine($"# Array {arrayIndex} (행: {rows}, 열: {cols})");
-
-                // 각 행(row)마다 데이터를 한 줄에 콤마(또는 탭)로 구분해서 작성
-                for (int r = 0; r < rows; r++)
-                {
-                    StringBuilder lineBuilder = new StringBuilder();
-                    for (int c = 0; c < cols; c++)
-                    {
-                        lineBuilder.Append(array2D[r, c].ToString());
-
-                        // 마지막 열이 아니면 구분자 추가
-                        if (c < cols - 1)
-                            lineBuilder.Append(",");  // 콤마(,)로 구분. 필요 시 '\t'로 변경 가능
-                    }
-
-                    writer.WriteLine(lineBuilder.ToString());
-                }
-
-                // 배열 간에 빈 줄 하나 추가 (선택 사항)
-                writer.WriteLine();
+                bestGen += eleGen[0][i, j].ToString();
+                if (j == inputN - 1) break;
+                bestGen += ", ";
             }
+            if (i == hiddenN - 1) break;
+            bestGen += " % ";
         }
-        Debug.Log($"데이터를 다음 경로에 저장했습니다: {path}");
-
+        bestGen += " / ";
+        for (int i = 0; i < outputN; i++)
+        {
+            for (int j = 0; j < hiddenN; j++)
+            {
+                bestGen += eleGen[1][i, j].ToString();
+                if (j == hiddenN - 1) break;
+                bestGen += ", ";
+            }
+            if (i == outputN - 1) break;
+            bestGen += " % ";
+        }
+        PlayerPrefs.SetString("best", bestGen);
     }
-
 }
