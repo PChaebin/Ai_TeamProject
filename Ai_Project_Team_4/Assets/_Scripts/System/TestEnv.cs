@@ -23,14 +23,14 @@ public class TestEnv : MonoBehaviour
     private GameObject inst;
     private Projectile instpro;
 
-    public int ind = 0;
-    public int count = 0;
+    private int ind = 0;
+    private int count = 0;
 
-    public float current;
-    public float cool = 5f;
+    private float currentTime = 0f;
+    private float time = 3f;
 
-    public string te;
-    public List<float[,]> text = new List<float[,]>();
+    public bool shot = false;
+    private int write = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -44,31 +44,31 @@ public class TestEnv : MonoBehaviour
         vecList.Add(new Vector2(-6f, 4.5f));
         vecList.Add(new Vector2(1f, 4.6f));
         vecList.Add(new Vector2(8f, 4.5f));
-        current = Time.time;
+        currentTime = Time.time;
     }
 
     // Update is called once per frame
     void Update()
     {
-        return;
-        if(Time.time - current < cool)
-        {
-            return;
-        }
+        if(!shot) return;
+        if(Time.time - currentTime < time) return;
+        ind = Random.Range(0, 8);
         inst = Instantiate(pro, goList[ind].transform.position, goList[ind].transform.rotation);
         instpro = inst.GetComponent<Projectile>();
         instpro.Fire(goList[ind].transform.position, vecList[ind]);
-        ind++;
+        currentTime = Time.time;
         count++;
-        current = Time.time;
-        if(ind >= 8)
+        //Debug.Log("count : "+count);
+        if (count >= 16)
         {
-            ind = 0;
-            if(count >= 16)
-            {
-                count = 0;
-                senc.UpGenIndex();
-            }
+            Debug.Log("before index : " + write);
+            write = senc.UpGenIndex();
+            Debug.Log("after index: " + write);
+            count = 0;
+        }
+        if (write == -1)
+        {
+            shot = true;
         }
     }
 }

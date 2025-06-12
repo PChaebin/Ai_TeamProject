@@ -139,7 +139,7 @@ PrefabInstance:
     - target: {fileID: 1061015326566607564, guid: 58778501132af76448b157a5c951e10f,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1431168009369144010, guid: 58778501132af76448b157a5c951e10f,
         type: 3}
@@ -731,64 +731,6 @@ MonoBehaviour:
   itemIndex: 0
   getting: 0
   spawnPos: {fileID: 1547785129}
---- !u!1 &935152006
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 935152008}
-  - component: {fileID: 935152007}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &935152007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 935152006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99810a467fb04404393789f328d08a65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  genIndex: 0
-  fitness: []
-  seed: 1
-  genN: 128
-  genI: 35
-  genO: 20
-  inputN: 7
-  hiddenN: 5
-  outputN: 4
-  seedN: 100
-  ele: 4
-  mutate1: 55
-  mutate2: 35
-  maxDist: 1.5
---- !u!4 &935152008
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 935152006}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.8294733, y: 0.5513508, z: 9.133042}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &958677945
 GameObject:
   m_ObjectHideFlags: 0
@@ -904,14 +846,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   senc: {fileID: 1339655924}
-  goList: []
+  goList:
+  - {fileID: 1457834082}
+  - {fileID: 1122596502}
+  - {fileID: 518376412}
+  - {fileID: 88570182}
+  - {fileID: 476122902}
+  - {fileID: 1101250152}
+  - {fileID: 958677945}
+  - {fileID: 1189870230}
   vecList: []
   pro: {fileID: 816988857939289933, guid: 54b62546552ec744eb2f3e482709af33, type: 3}
-  ind: 0
-  count: 0
-  current: 0
-  cool: 5
-  te: 
+  shot: 1
 --- !u!4 &1068254830
 Transform:
   m_ObjectHideFlags: 0
@@ -1234,20 +1180,23 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1339655921}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23466b3a56a7d6f49a4d6fb9c99bc927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   system: {fileID: 1339655926}
   Collider: {fileID: 1339655923}
-  isTurning: 0
+  isTurning: 1
   leftArmPoint: {fileID: 12912385}
   rightArmPoint: {fileID: 12912384}
   leftArm: {fileID: 1138789994}
   rightArm: {fileID: 476920331}
   inputLayerNode: []
   outputLayerNode: []
+  inputN: 7
+  hiddenN: 5
+  outputN: 4
 --- !u!114 &1339655926
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1262,18 +1211,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   genIndex: 0
   fitness: []
-  seed: 1
-  genN: 128
+  seedIndex: 1
+  genN: 64
   genI: 35
   genO: 20
+  seedN: 2
+  ele: 1
   inputN: 7
   hiddenN: 5
   outputN: 4
-  seedN: 100
-  ele: 4
   mutate1: 55
   mutate2: 35
   maxDist: 1.5
+  a: 0
 --- !u!61 &1422878810 stripped
 BoxCollider2D:
   m_CorrespondingSourceObject: {fileID: 478456942293448649, guid: 58778501132af76448b157a5c951e10f,
@@ -1855,4 +1805,3 @@ SceneRoots:
   - {fileID: 832113440}
   - {fileID: 12912383}
   - {fileID: 1068254830}
-  - {fileID: 935152008}

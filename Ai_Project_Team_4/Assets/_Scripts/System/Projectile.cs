@@ -74,12 +74,10 @@ public class Projectile : MonoBehaviour
         yield return new WaitForSeconds(1.2f);
         if(!GetIsDestoryed())
         {
-            Debug.Log("Projectile 77 + destory");
             SetDestoryed();
             OffRender();
         }
-        CheckRespawn();
-        Debug.Log("Projectile 82 + destory");
+        //CheckRespawn();
     }
 
     public void OnRender()

@@ -12,13 +12,12 @@ public class TestArms : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log("TestArms 12 + armEnter");
         if (collision.gameObject.CompareTag("Projectile"))
         {
             Projectile item = collision.gameObject.GetComponent<Projectile>();
             item.SetDestoryed();
             item.OffRender();
-            Debug.Log("TestArms 18 + Protect");
+            Debug.Log("Protect!!");
         }
     }
 }

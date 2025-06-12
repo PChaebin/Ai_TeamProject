@@ -51,6 +51,30 @@ public class LerningSystem : MonoBehaviour
     [Header("maxDist")]
     public float maxDist = 1.5f;
 
+    public int a = 0;
+    public List<List<float[,]>> b = new List<List<float[,]>>();
+    public List<List<float[,]>> c = new List<List<float[,]>>();
+
+    private void Start()
+    {
+        InitObject();
+    }
+
+    private void Update()
+    {
+        if (a==1)
+        {
+            c = Tournament();
+            b = SelectEleti();
+            a++;
+        }
+        if (a == 3)
+        {
+            generatons = SelecteGen(c, b);
+            a++;
+        }
+    }
+
     public float[,] Getmaterix(int i)
     {
         return generatons[genIndex][i];
@@ -59,13 +83,20 @@ public class LerningSystem : MonoBehaviour
     public int genIndexAndSeedUP()
     {
         genIndex++;
+        Debug.Log("genIndex : "+genIndex);
         if(genIndex >= genN)
         {
             seedIndex++;
+            Debug.Log("seedIndex : " + seedIndex);
             genIndex = 0;
             return -1;
         }
         return genIndex;
+    }
+
+    public int GetSeedIndex()
+    {
+        return seedIndex;
     }
 
     public bool IsOverSeed()
@@ -79,7 +110,9 @@ public class LerningSystem : MonoBehaviour
 
     public void NextGens()
     {
+        Debug.Log("error?");
         generatons = Mutate(SelecteGen(Tournament(), SelectEleti()));
+        Debug.Log("susses!");
     }
 
     public List<List<float[,]>> SelectEleti()
@@ -94,7 +127,6 @@ public class LerningSystem : MonoBehaviour
             int bestIndex = fitness.FindIndex(x => x == bestValue);
             corrosGeneratons.Add(generatons[bestIndex]);
         }
-
         return corrosGeneratons;
     }
 
@@ -139,64 +171,62 @@ public class LerningSystem : MonoBehaviour
     /// </summary>
     public List<List<float[,]>> SelecteGen(List<List<float[,]>> tonement, List<List<float[,]>> corrosGeneratons)
     {
-        int par1indx;
-        int par2indx;
+        // 목표 크기
+        int targetSize = tonement.Count;
 
-        List<float[,]> parent1;
-        List<float[,]> parent2;
-
-        // 다점 교배 진행
-        while (corrosGeneratons.Count < generatons.Count)
+        while (corrosGeneratons.Count < targetSize)
         {
-            List<float[,]> child1 = new List<float[,]>();
-            List<float[,]> child2 = new List<float[,]>();
+            // 부모 두 개 랜덤 선택 (서로 다른 인덱스)
+            int i1 = Random.Range(0, tonement.Count);
+            int i2 = Random.Range(0, tonement.Count - 1);
+            if (i2 >= i1) i2++;
+            var parent1 = tonement[i1];
+            var parent2 = tonement[i2];
 
-            par1indx = UnityEngine.Random.Range(0, tonement.Count);
-            par2indx = UnityEngine.Random.Range(0, tonement.Count - 1);
-            if (par2indx >= par1indx)
-                par2indx++;
+            // 절단점 개수는 parent 길이에 맞게 조정
+            int maxCuts = Mathf.Max(1, parent1.Count - 1);
+            int numCuts = Mathf.Min(2, maxCuts);
 
-            parent1 = tonement[par1indx];
-            parent2 = tonement[par2indx];
+            // 1) 가능한 절단점(1 ~ Count-1) 리스트
+            var possibleCuts = Enumerable.Range(1, parent1.Count - 1).ToList();
+            // 2) 섞어서 numCuts개 뽑고 정렬
+            var cuts = possibleCuts
+                .OrderBy(_ => Random.value)
+                .Take(numCuts)
+                .OrderBy(x => x)
+                .ToList();
+            cuts.Add(parent1.Count);  // 끝 지점 추가
+            Debug.Log("corros point");
 
-            // 1) 절단점 개수 지정
-            int numPoints = 2;
-
-            // 2) [1, parent1.Count) 범위에서 중복 없이 절단점 생성
-            List<int> points = new List<int>();
-            while (points.Count < numPoints)
-            {
-                int p = UnityEngine.Random.Range(1, parent1.Count);
-                if (!points.Contains(p))
-                    points.Add(p);
-            }
-            points.Sort();            // 오름차순 정렬
-            points.Add(parent1.Count); // 마지막은 전체 길이
-
-            // 4) 절단점 사이 구간을 번갈아 가며 붙여넣기
+            // 3) 교차 생성
+            var child1 = new List<float[,]>();
+            var child2 = new List<float[,]>();
             int last = 0;
-            bool takeFromP1 = true;
-            foreach (int cut in points)
+            bool takeP1 = true;
+            foreach (int cut in cuts)
             {
                 int len = cut - last;
-                if (takeFromP1)
+                if (takeP1)
                 {
-                    // parent1 → child1, parent2 → child2
                     child1.AddRange(parent1.GetRange(last, len));
                     child2.AddRange(parent2.GetRange(last, len));
                 }
                 else
                 {
-                    // parent2 → child1, parent1 → child2
                     child1.AddRange(parent2.GetRange(last, len));
                     child2.AddRange(parent1.GetRange(last, len));
                 }
-                takeFromP1 = !takeFromP1;
+                takeP1 = !takeP1;
                 last = cut;
+                Debug.Log("corrosing");
             }
+
+            Debug.Log("add");
             corrosGeneratons.Add(child1);
             corrosGeneratons.Add(child2);
         }
+        Debug.Log(corrosGeneratons);
+
         return corrosGeneratons;
     }
 
@@ -236,12 +266,12 @@ public class LerningSystem : MonoBehaviour
     /// </summary>
     public void SetFitness(GameObject leftPoint, GameObject rightPoint, GameObject projectileObj)
     {
-        float leftdist = maxDist - (leftPoint.transform.position - projectileObj.transform.position).magnitude;
+        float leftdist = maxDist - (projectileObj.transform.position - leftPoint.transform.position).magnitude;
         if (leftdist < 0)
         {
             leftdist = 0;
         }
-        float rightdist = maxDist - (rightPoint.transform.position - projectileObj.transform.position).magnitude;
+        float rightdist = maxDist - (projectileObj.transform.position - rightPoint.transform.position).magnitude;
         if (rightdist < 0)
         {
             rightdist = 0;
@@ -264,6 +294,7 @@ public class LerningSystem : MonoBehaviour
             generatons.Add(InitGeneratons());
             fitness.Add(0);
         }
+       //Debug.Log("init");
     }
     public List<float[,]> InitGeneratons()
     {
@@ -273,14 +304,16 @@ public class LerningSystem : MonoBehaviour
         {
             for (int i = 0; i < inputN; i++)
             {
-                ih[h, i] = UnityEngine.Random.Range(-1f, 1f);
+                ih[h, i] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f ) / 100f;
+                //Debug.Log("ih : "+ih[h, i]);
             }
         }
         for (int o = 0; o < outputN; o++)
         {
             for (int h = 0; h < hiddenN; h++)
             {
-                ho[o, h] = UnityEngine.Random.Range(-1f, 1f);
+                ho[o, h] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) *100f) / 100f;
+                //Debug.Log("ho : " + ho[o, h]);
             }
         }
         List<float[,]> generaton = new List<float[,]>();
@@ -333,5 +366,6 @@ public class LerningSystem : MonoBehaviour
             bestGen += " % ";
         }
         PlayerPrefs.SetString("best", bestGen);
+        Debug.Log("result : "+PlayerPrefs.GetString("best"));
     }
 }

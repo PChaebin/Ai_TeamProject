@@ -62,6 +62,7 @@ public class InputSensor : MonoBehaviour
     void Start()
     {
         outputLayerNode = new float[4] { 0,0,0,0 };
+        inputLayerNode = new float[7] { 0, 0, 0, 0, 0, 0, 0 };
         if(system != null)
         {
             system.InitObject();
@@ -91,7 +92,6 @@ public class InputSensor : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Projectile"))
         {
-            isTurning = true;
             SetDistanceToProjectile(GetDistanceToProjectile(collision.gameObject));
             SetDistanceToLeftArm(GetDistanceToLeftArm(collision.gameObject));
             SetDistanceToRightArm(GetDistanceToRightArm(collision.gameObject));
@@ -101,28 +101,38 @@ public class InputSensor : MonoBehaviour
             SetPositionMinusToRightArm(GetPositionMinusToRightArm(collision.gameObject));
 
             outputLayerNode = NerualNetwork(inputLayerNode, weightIH, weightHO);
+            //Debug.Log("output : " + outputLayerNode[0]);
+            //Debug.Log("output : " + outputLayerNode[1]);
+            //Debug.Log("output : " + outputLayerNode[2]);
+            //Debug.Log("output : " + outputLayerNode[3]);
         }
-        isTurning = false;
         if(system != null)
         {
             system.SetFitness(leftArmPoint, rightArmPoint, collision.gameObject);
+            //Debug.Log("fit");
         }
     }
 
-    public void UpGenIndex()
+    public int UpGenIndex()
     {
         int a = system.genIndexAndSeedUP();
+        Debug.Log("next index : " + a);
         if (a == -1)
         {
+            Debug.Log("before next : ");
             system.NextGens();
+            Debug.Log("after next: ");
         }
-        if(system.IsOverSeed())
+        if (system.IsOverSeed())
         {
+            Debug.Log("stop");
             system.WriteFileGreateGen();
-            return;
+            return -1;
         }
+        Debug.Log("get materix : " + a);
         weightIH = system.Getmaterix(0);
         weightHO = system.Getmaterix(1);
+        return system.GetSeedIndex();
     }
 
     /// <summary>
@@ -132,6 +142,7 @@ public class InputSensor : MonoBehaviour
     public void rotateAction(float[] outPut)
     {
         float actionValue = outPut.Max();
+        //Debug.Log("max : " + actionValue);
         int actionIndex = Array.IndexOf(outPut, actionValue);
         //Debug.Log("index : " + actionIndex);
         switch (actionIndex)
