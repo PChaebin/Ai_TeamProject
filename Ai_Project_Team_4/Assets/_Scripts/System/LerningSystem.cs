@@ -13,13 +13,13 @@ public class LerningSystem : MonoBehaviour
     [Header("current Generaton Index")]
     public int genIndex = 0;
     [Header("Fitness")]
-    public List<float> fitness = new List<float>();
+    public List<float> fitness;
     [Header("current Seed")]
     public int seedIndex = 1;
 
     //개체수
     [Header("generaton n")]
-    public int genN = 8;
+    public int genN;
     [Header("gen I")]
     public int genI = 35;
     [Header("gen O")]
@@ -27,10 +27,10 @@ public class LerningSystem : MonoBehaviour
 
     //최대세대
     [Header("seed n")]
-    public int seedN = 4;
+    public int seedN;
     //엘리트 수
     [Header("eleitm")]
-    public int ele = 2;
+    public int ele;
 
     //인풋
     [Header("inputN")]
@@ -51,30 +51,6 @@ public class LerningSystem : MonoBehaviour
     [Header("maxDist")]
     public float maxDist = 1.5f;
 
-    public int a = 0;
-    public List<List<float[,]>> b = new List<List<float[,]>>();
-    public List<List<float[,]>> c = new List<List<float[,]>>();
-
-    private void Start()
-    {
-        InitObject();
-    }
-
-    private void Update()
-    {
-        if (a==1)
-        {
-            c = Tournament();
-            b = SelectEleti();
-            a++;
-        }
-        if (a == 3)
-        {
-            generatons = SelecteGen(c, b);
-            a++;
-        }
-    }
-
     public float[,] Getmaterix(int i)
     {
         return generatons[genIndex][i];
@@ -83,11 +59,9 @@ public class LerningSystem : MonoBehaviour
     public int genIndexAndSeedUP()
     {
         genIndex++;
-        Debug.Log("genIndex : "+genIndex);
         if(genIndex >= genN)
         {
             seedIndex++;
-            Debug.Log("seedIndex : " + seedIndex);
             genIndex = 0;
             return -1;
         }
@@ -110,9 +84,7 @@ public class LerningSystem : MonoBehaviour
 
     public void NextGens()
     {
-        Debug.Log("error?");
         generatons = Mutate(SelecteGen(Tournament(), SelectEleti()));
-        Debug.Log("susses!");
     }
 
     public List<List<float[,]>> SelectEleti()
@@ -127,6 +99,7 @@ public class LerningSystem : MonoBehaviour
             int bestIndex = fitness.FindIndex(x => x == bestValue);
             corrosGeneratons.Add(generatons[bestIndex]);
         }
+        //Debug.Log("select count : "+corrosGeneratons.Count);
         return corrosGeneratons;
     }
 
@@ -163,6 +136,7 @@ public class LerningSystem : MonoBehaviour
                 tonement.Add(generatons[secondIndex]);
             }
         }
+        //Debug.Log("tonement count : " + tonement.Count);
         return tonement;
     }
 
@@ -171,9 +145,10 @@ public class LerningSystem : MonoBehaviour
     /// </summary>
     public List<List<float[,]>> SelecteGen(List<List<float[,]>> tonement, List<List<float[,]>> corrosGeneratons)
     {
+        //Debug.Log("eletism count : "+corrosGeneratons.Count);
         // 목표 크기
-        int targetSize = tonement.Count;
-
+        int targetSize = generatons.Count;
+        //Debug.Log("targetSize : " + targetSize);
         while (corrosGeneratons.Count < targetSize)
         {
             // 부모 두 개 랜덤 선택 (서로 다른 인덱스)
@@ -196,7 +171,6 @@ public class LerningSystem : MonoBehaviour
                 .OrderBy(x => x)
                 .ToList();
             cuts.Add(parent1.Count);  // 끝 지점 추가
-            Debug.Log("corros point");
 
             // 3) 교차 생성
             var child1 = new List<float[,]>();
@@ -218,15 +192,19 @@ public class LerningSystem : MonoBehaviour
                 }
                 takeP1 = !takeP1;
                 last = cut;
-                Debug.Log("corrosing");
             }
 
-            Debug.Log("add");
             corrosGeneratons.Add(child1);
             corrosGeneratons.Add(child2);
         }
-        Debug.Log(corrosGeneratons);
-
+        if(corrosGeneratons.Count > targetSize)
+        {
+            for(int i = corrosGeneratons.Count -1; i >= targetSize; i--)
+            {
+                corrosGeneratons.RemoveAt(i);
+            }
+        }
+        //Debug.Log("corrosGeneratons count : " + corrosGeneratons.Count);
         return corrosGeneratons;
     }
 
@@ -236,28 +214,34 @@ public class LerningSystem : MonoBehaviour
         int idx = 0;
         int x = 0;
         int y = 0;
-
-        for (int j = 3; j < genN; j++)
+        for (int j = ele; j < genN; j++)
         {
             mutate = UnityEngine.Random.value * 100;
-            if (mutate < mutate1)
+            //Debug.Log("mutate : " + mutate);
+            if (mutate <= mutate1)
             {
                 idx = UnityEngine.Random.Range(0, genI);
+                //Debug.Log(idx);
                 x = idx % hiddenN;
                 y = idx % inputN;
-                corrosGeneratons[j][0][x, y] = UnityEngine.Random.Range(-1f, 1f);
+                corrosGeneratons[j][0][x, y] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f) / 100f;
             }
-            if (mutate < mutate2)
+            if (mutate <= mutate2)
             {
                 idx = UnityEngine.Random.Range(0, genO);
+                //Debug.Log(idx);
                 x = idx % outputN;
                 y = idx % hiddenN;
-                corrosGeneratons[j][1][x, y] = UnityEngine.Random.Range(-1f, 1f);
+                corrosGeneratons[j][1][x, y] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f) / 100f;
             }
         }
 
         fitness.Clear();
-
+        for(int i = 0; i < genN; i++)
+        {
+            fitness.Add(0);
+        }
+        //Debug.Log("fitness count : "+fitness.Count);
         return corrosGeneratons;
     }
 
@@ -293,6 +277,7 @@ public class LerningSystem : MonoBehaviour
         {
             generatons.Add(InitGeneratons());
             fitness.Add(0);
+            //Debug.Log(fitness.Count);
         }
        //Debug.Log("init");
     }

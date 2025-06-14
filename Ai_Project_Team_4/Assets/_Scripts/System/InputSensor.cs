@@ -61,6 +61,7 @@ public class InputSensor : MonoBehaviour
     // Update is called once per frame
     void Start()
     {
+        //Debug.Log("start");
         outputLayerNode = new float[4] { 0,0,0,0 };
         inputLayerNode = new float[7] { 0, 0, 0, 0, 0, 0, 0 };
         if(system != null)
@@ -70,9 +71,24 @@ public class InputSensor : MonoBehaviour
             weightHO = system.Getmaterix(1);
             return;
         }
+        
         finalGen = ReadFileGreateGen();
         weightIH = finalGen[0];
         weightHO = finalGen[1];
+        for (int j = 0; j < hiddenN; j++)
+        {
+            for (int k = 0; k < inputN; k++)
+            {
+                Debug.Log(weightIH[j, k]);
+            }
+        }
+        for (int j = 0; j < outputN; j++)
+        {
+            for (int k = 0; k < hiddenN; k++)
+            {
+                Debug.Log(weightHO[j, k]);
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -113,23 +129,24 @@ public class InputSensor : MonoBehaviour
         }
     }
 
+    public void SetTurning(bool isTurn)
+    {
+        isTurning = isTurn;
+    }
+
     public int UpGenIndex()
     {
         int a = system.genIndexAndSeedUP();
         Debug.Log("next index : " + a);
         if (a == -1)
         {
-            Debug.Log("before next : ");
             system.NextGens();
-            Debug.Log("after next: ");
         }
         if (system.IsOverSeed())
         {
-            Debug.Log("stop");
             system.WriteFileGreateGen();
             return -1;
         }
-        Debug.Log("get materix : " + a);
         weightIH = system.Getmaterix(0);
         weightHO = system.Getmaterix(1);
         return system.GetSeedIndex();
@@ -148,16 +165,16 @@ public class InputSensor : MonoBehaviour
         switch (actionIndex)
         {
             case 0:
-                rightArm.transform.Rotate(Vector3.forward, 3f);
+                rightArm.transform.Rotate(Vector3.forward, 10f);
                 break;
             case 1:
-                rightArm.transform.Rotate(Vector3.forward, -3f);
+                rightArm.transform.Rotate(Vector3.forward, -10f);
                 break;
             case 2:
-                leftArm.transform.Rotate(Vector3.forward, 3f);
+                leftArm.transform.Rotate(Vector3.forward, 10f);
                 break;
             case 3:
-                leftArm.transform.Rotate(Vector3.forward, -3f);
+                leftArm.transform.Rotate(Vector3.forward, -10f);
                 break;
             default:
                 Debug.Log("notting");
@@ -204,23 +221,20 @@ public class InputSensor : MonoBehaviour
         float[,] ho = new float[outputN, hiddenN];
 
         string test = PlayerPrefs.GetString("best");
-
         string[] spl = test.Split(" / ");
         string[] x = spl[0].Split(" % ");
         string[] y = spl[1].Split(" % ");
-        string[] f = x[0].Split(", ");
-
         for (int a = 0; a < x.Length; a++)
         {
-
+            string[] f = x[a].Split(", ");
             for (int b = 0; b < f.Length; b++)
             {
                 ih[a, b] = float.Parse(f[b]);
             }
         }
-        f = y[0].Split(", ");
         for (int a = 0; a < y.Length; a++)
         {
+            string[] f = y[a].Split(", ");
             for (int b = 0; b < f.Length; b++)
             {
                 ho[a, b] = float.Parse(f[b]);

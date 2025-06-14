@@ -34,11 +34,11 @@ public class EnemyFSM : MonoBehaviour
     public float idleToPatrolTime = 1f;
 
     [Header("Detect 설정")]
-    private float detectDuration = 1.5f;
+    private float detectDuration = 0.4f;
     private float detectTimer = 0f;
 
     [Header("Roar 설정")]
-    private float roarDuration = 1f;
+    private float roarDuration = 0.1f;
 
     [Header("Chase 설정")]
     public float chaseSpeed = 3f;
@@ -53,8 +53,15 @@ public class EnemyFSM : MonoBehaviour
     [Header("Hit Box")]
     public Collider2D Collider;
 
+    [Header("stay time")]
+    public float stayTime = 3f;
+    public float currentTime = 0f;
+    public Vector3 lastPos;
+    public Vector3 currentPos;
+
     void Start()
     {
+        lastPos = this.transform.position;
         GameObject found = GameObject.Find("Player");
 
         if (found != null)
@@ -139,12 +146,15 @@ public class EnemyFSM : MonoBehaviour
     void Patrol()
     {
         patrolTimer += Time.deltaTime;
+        currentTime += Time.deltaTime;
 
         if (patrolTimer > patrolChangeTime)
         {
             patrolDirection = UnityEngine.Random.insideUnitCircle.normalized;
             patrolTimer = 0f;
         }
+        if (PlayerDetected())
+            ChangeState(State.Detect);
 
         if (!IsWallInDirection(patrolDirection, wallCheckDistance))
         {
@@ -152,13 +162,23 @@ public class EnemyFSM : MonoBehaviour
         }
         else
         {
-            // 벽에 부딪히면 방향 바꾸기
-            patrolDirection = UnityEngine.Random.insideUnitCircle.normalized;
+            // 벽에 부딪히면 반사되는 방향 바꾸기
+            patrolDirection = -UnityEngine.Random.insideUnitCircle.normalized;
             patrolTimer = 0f;
         }
+        if(currentTime > stayTime)
+        {
+            currentPos = this.transform.position;
+            if (lastPos == currentPos)
+            {
+                Debug.Log("change");
+                patrolDirection = -patrolDirection;
+            }
+            currentTime = 0f;
+            lastPos = this.transform.position;
+        }
 
-        if (PlayerDetected())
-            ChangeState(State.Detect);
+
     }
 
     /// <summary>
@@ -171,16 +191,18 @@ public class EnemyFSM : MonoBehaviour
         if (player == null) return;
 
         Vector2 toPlayer = (player.position - transform.position).normalized;
-        float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        //float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
+        //transform.rotation = Quaternion.Euler(0, 0, angle);
 
         if (detectTimer >= detectDuration)
         {
+            detectDuration = 0.4f;
             ChangeState(State.Roar);
         }
 
         if (!PlayerDetected())
         {
+            detectDuration = 0.4f;
             ChangeState(State.Patrol);
         }
     }
@@ -212,7 +234,8 @@ public class EnemyFSM : MonoBehaviour
 
         if (!PlayerDetected())
         {
-            ChangeState(State.Patrol);
+            detectDuration = 1.4f;
+            ChangeState(State.Detect);
         }
     }
 

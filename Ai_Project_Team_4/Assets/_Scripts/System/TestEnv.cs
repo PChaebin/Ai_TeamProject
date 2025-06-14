@@ -32,9 +32,13 @@ public class TestEnv : MonoBehaviour
     public bool shot = false;
     private int write = 0;
 
+    [Header("end mix")]
+    public AudioSource source;
+
     // Start is called before the first frame update
     void Start()
     {
+        source.Play();
         vecList = new List<Vector2>();
         vecList.Add(new Vector2(8f, 0.5f));
         vecList.Add(new Vector2(8f, -3.5f));
@@ -58,17 +62,16 @@ public class TestEnv : MonoBehaviour
         instpro.Fire(goList[ind].transform.position, vecList[ind]);
         currentTime = Time.time;
         count++;
-        //Debug.Log("count : "+count);
         if (count >= 16)
         {
-            Debug.Log("before index : " + write);
             write = senc.UpGenIndex();
-            Debug.Log("after index: " + write);
             count = 0;
+            source.Play();
         }
         if (write == -1)
         {
-            shot = true;
+            source.Play();
+            shot = false;
         }
     }
 }

@@ -65,8 +65,8 @@ public class ItemSpawner : MonoBehaviour
     {
         for(int i = 0; i < passwordNum; i++)
         {
-            float x = Random.Range(-10, 11);
-            float y = Random.Range(-10, 11);
+            float x = Random.Range(-15, 23);
+            float y = Random.Range(-18, 35);
             Vector3 randomPos = new Vector3(x, y, -1);
             GameObject passwordInst = Instantiate(password, randomPos, password.transform.rotation);
 
@@ -77,6 +77,14 @@ public class ItemSpawner : MonoBehaviour
             passwordList.Add(num);
         }
     }
+
+    public void ClearItems()
+    {
+        passwordList.Clear();
+        projectileList.Clear();
+        projectileScriptsList.Clear();
+    }
+
     public void SetProjectileList()
     {
         for (int i = 0; i < projectileNum; i++)
