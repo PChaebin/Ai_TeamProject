@@ -1,3 +1,4 @@
+using Cainos.PixelArtTopDown_Basic;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,8 +11,11 @@ public class TestPlayer : MonoBehaviour
     public int itemIndex;
     [Header("Getting")]
     public bool getting;
-    [Header("spawn position")]
-    public GameObject spawnPos;
+
+    [Header("UI")]
+    public UIManager manager;
+    [Header("controller")]
+    public TopDownCharacterController characterController;
 
     private void Start()
     {
@@ -22,12 +26,16 @@ public class TestPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(characterController.GetNotMove())
+        {
+            return;
+        }
         Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         if (getting && Input.GetMouseButtonUp(0))
         {
-            projectiles[itemIndex].Fire(spawnPos.transform.position, pos);
+            manager.UseItem();
+            projectiles[itemIndex].Fire(transform.position, pos);
             StartCoroutine(fireCoolTimer());
-            Debug.Log("shooting : " +itemIndex);
         }
     }
 
@@ -35,6 +43,7 @@ public class TestPlayer : MonoBehaviour
     {
         if (!getting && collision.gameObject.CompareTag("Projectile"))
         {
+            manager.SetItem();
             Projectile item = collision.gameObject.GetComponent<Projectile>();
             for (int i = 0; i < projectiles.Count; i++)
             {

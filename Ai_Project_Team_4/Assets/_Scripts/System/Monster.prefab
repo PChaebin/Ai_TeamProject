@@ -152,6 +152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1131948869880096375}
+  - component: {fileID: 8829366328479145763}
   - component: {fileID: 7972099607066945306}
   m_Layer: 20
   m_Name: KillSensor
@@ -175,6 +176,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4482326362415795792}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8829366328479145763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350331784077690714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ecfe9cd570f2ec4b934328249f3638b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameoverUI: {fileID: 0}
 --- !u!61 &7972099607066945306
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -204,7 +218,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: -0.007864237, y: 0.7942877}

@@ -22,6 +22,9 @@ public class EnemyFSM : MonoBehaviour
 
     private float stateTimer = 0f;
 
+    [Header("gameStart")]
+    public bool gameStart = false;
+
     [Header("공통 설정")]
     public float speed = 2f;
     public float detectRange = 5f;
@@ -48,7 +51,7 @@ public class EnemyFSM : MonoBehaviour
     private float blockDuration = 1f;
 
     [Header("Stun 설정")]
-    private float stunDuration = 2f;
+    private float stunDuration = 3f;
 
     [Header("Hit Box")]
     public Collider2D Collider;
@@ -69,6 +72,19 @@ public class EnemyFSM : MonoBehaviour
         else
             UnityEngine.Debug.LogWarning("Player 오브젝트를 찾을 수 없습니다.");
 
+        ChangeState(State.Idle);
+    }
+
+    public void StartGame()
+    {
+        gameStart = true;
+        this.transform.position = new Vector3(8,36,0);
+        ChangeState(State.Idle);
+    }
+
+    public void EndGame()
+    {
+        gameStart = false;
         ChangeState(State.Idle);
     }
 
@@ -128,13 +144,7 @@ public class EnemyFSM : MonoBehaviour
     /// </summary>
     void Idle() 
     {
-        if (PlayerDetected())
-        {
-            ChangeState(State.Detect);
-            return;
-        }
-
-        if (stateTimer >= idleToPatrolTime)
+        if (gameStart)
         {
             ChangeState(State.Patrol);
         }
@@ -257,7 +267,7 @@ public class EnemyFSM : MonoBehaviour
     {
         if (stateTimer >= stunDuration)
         {
-            ChangeState(State.Idle);
+            ChangeState(State.Patrol);
         }
     }
 

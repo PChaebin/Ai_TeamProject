@@ -18,29 +18,19 @@ public class ItemSpawner : MonoBehaviour
     public int passwordNum = 4;
     public int projectileNum = 5;
 
-    // Start is called before the first frame update
-    void Awake()
+    public void SetItems()
     {
         CreatePassword();
         SetProjectileList();
         StartCoroutine(SpawnProjectile(0f));
     }
 
-    //void Update()
-    //{
-    //    Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    //    if (Input.GetMouseButtonUp(0))
-    //    {
-    //        projectileScriptsList[count].Fire(this.transform.position, pos);
-    //        count += 1;
-    //        Debug.Log(count);
-    //    }
-    //    if(count >= 5)
-    //    {
-    //        count = 0;
-    //    }
-    //}
-
+    public void ClearItems()
+    {
+        passwordList.Clear();
+        projectileList.Clear();
+        projectileScriptsList.Clear();
+    }
     public List<Projectile> GetProjectileListcs()
     {
         return projectileScriptsList;
@@ -76,13 +66,6 @@ public class ItemSpawner : MonoBehaviour
 
             passwordList.Add(num);
         }
-    }
-
-    public void ClearItems()
-    {
-        passwordList.Clear();
-        projectileList.Clear();
-        projectileScriptsList.Clear();
     }
 
     public void SetProjectileList()
