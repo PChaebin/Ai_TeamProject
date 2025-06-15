@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ItemSpawner : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class ItemSpawner : MonoBehaviour
 
     [Header("List")]
     public List<int> passwordList;
+    public List<GameObject> passwordObjList;
     public List<GameObject> projectileList;
     public List<Projectile> projectileScriptsList;
 
@@ -17,6 +19,11 @@ public class ItemSpawner : MonoBehaviour
 
     public int passwordNum = 4;
     public int projectileNum = 5;
+
+    public List<int> passX = new List<int>() { -5, 0, 5, 10, 15 };
+    public List<int> passY = new List<int>() { -5, 0, 5, 10, 15, 20, 25, 30 };
+    public List<int> itemX = new List<int>() { -10, -5, 0, 5, 10, 15, 20 };
+    public List<int> itemY = new List<int>() { -15, -10, -5, 0, 5, 10, 15, 20 };
 
     public void SetItems()
     {
@@ -27,7 +34,16 @@ public class ItemSpawner : MonoBehaviour
 
     public void ClearItems()
     {
+        for(int i =0; i < passwordList.Count; i++)
+        {
+            Destroy(passwordObjList[i]);
+        }
         passwordList.Clear();
+        for(int j = 0; j < projectileList.Count; j++)
+        {
+            Destroy(projectileList[j]);
+            Destroy(projectileScriptsList[j]);
+        }
         projectileList.Clear();
         projectileScriptsList.Clear();
     }
@@ -53,10 +69,12 @@ public class ItemSpawner : MonoBehaviour
 
     public void CreatePassword()
     {
-        for(int i = 0; i < passwordNum; i++)
+        for (int i = 0; i < passwordNum; i++)
         {
-            float x = Random.Range(-15, 23);
-            float y = Random.Range(-18, 35);
+            int xind = Random.Range(0, passX.Count);
+            int yind =Random.Range(0, passY.Count);
+            float x = passX[xind];
+            float y = passY[yind];
             Vector3 randomPos = new Vector3(x, y, -1);
             GameObject passwordInst = Instantiate(password, randomPos, password.transform.rotation);
 
@@ -64,6 +82,7 @@ public class ItemSpawner : MonoBehaviour
             Password passwordScript = passwordInst.GetComponent<Password>();
             passwordScript.SetNum(num);
 
+            passwordObjList.Add(passwordInst);
             passwordList.Add(num);
         }
     }
@@ -88,14 +107,18 @@ public class ItemSpawner : MonoBehaviour
         {
             yield return new WaitForSeconds(time);
 
-            float x = Random.Range(-10, 11);
-            float y = Random.Range(-10, 11);
+            int xind = Random.Range(0, itemX.Count);
+            int yind = Random.Range(0, itemY.Count);
+            float x = itemX[xind];
+            float y = itemY[yind];
+
             Vector3 randomPos = new Vector3(x, y, 0);
             projectileList[i].transform.position = randomPos;
             projectileList[i].transform.up = Vector3.zero;
 
             projectileScriptsList[i].OnRender();
             projectileScriptsList[i].SetSaved();
+            projectileScriptsList[i].SetStop();
         }
     }
 
@@ -104,14 +127,18 @@ public class ItemSpawner : MonoBehaviour
        
         yield return new WaitForSeconds(time);
 
-        float x = Random.Range(-10, 11);
-        float y = Random.Range(-10, 11);
+        int xind = Random.Range(0, itemX.Count);
+        int yind = Random.Range(0, passY.Count);
+        float x = itemX[xind];
+        float y = itemY[yind];
+
         Vector3 randomPos = new Vector3(x, y, 0);
         projectileList[i].transform.position = randomPos;
         projectileList[i].transform.up = Vector3.zero;
 
         projectileScriptsList[i].OnRender();
         projectileScriptsList[i].SetSaved();
+        projectileScriptsList[i].SetStop();
        
     }
     public bool CheckAllProjectileLive()

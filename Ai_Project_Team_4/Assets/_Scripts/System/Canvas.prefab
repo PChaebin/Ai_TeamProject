@@ -1117,7 +1117,6 @@ GameObject:
   - component: {fileID: 6841804066909707718}
   - component: {fileID: 8161088707745880121}
   - component: {fileID: 8422788263824461526}
-  - component: {fileID: 5963574918932574307}
   - component: {fileID: 1903257584531817430}
   - component: {fileID: 1771328047754401795}
   - component: {fileID: 3241978117987053393}
@@ -1166,6 +1165,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   doorController: {fileID: 0}
   passwordInputField: {fileID: 323978426143152222}
+  submitBtn: {fileID: 0}
 --- !u!114 &8422788263824461526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1186,29 +1186,11 @@ MonoBehaviour:
   item: {fileID: 2133329939473886261}
   monster: {fileID: 0}
   player: {fileID: 0}
-  spawner: {fileID: 5963574918932574307}
---- !u!114 &5963574918932574307
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3570343597818166037}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48492fc930111ce4b8f43f39509db3f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  password: {fileID: 7788402079656402207, guid: ba2eb39791a7f764a9146507510286b1,
-    type: 3}
-  projectile: {fileID: 816988857939289933, guid: 54b62546552ec744eb2f3e482709af33,
-    type: 3}
-  passwordList: 
-  projectileList: []
-  projectileScriptsList: []
-  count: 0
-  passwordNum: 4
-  projectileNum: 5
+  spawner: {fileID: 0}
+  cam: {fileID: 0}
+  startBtn: {fileID: 0}
+  retryBtn: {fileID: 0}
+  regameBtn: {fileID: 0}
 --- !u!223 &1903257584531817430
 Canvas:
   m_ObjectHideFlags: 0

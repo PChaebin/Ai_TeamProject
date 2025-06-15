@@ -12,7 +12,7 @@ public class TestArms : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().GetIsShooting())
         {
             Projectile item = collision.gameObject.GetComponent<Projectile>();
             item.SetDestoryed();

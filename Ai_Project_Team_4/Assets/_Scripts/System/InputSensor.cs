@@ -6,7 +6,6 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
 using System.Text;
-using static UnityEditor.Rendering.CameraUI;
 using UnityEngine.Windows;
 
 public class InputSensor : MonoBehaviour
@@ -102,7 +101,7 @@ public class InputSensor : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().GetIsShooting())
         {
             SetDistanceToProjectile(GetDistanceToProjectile(collision.gameObject));
             SetDistanceToLeftArm(GetDistanceToLeftArm(collision.gameObject));

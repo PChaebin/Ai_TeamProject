@@ -28,7 +28,7 @@ namespace Cainos.PixelArtTopDown_Basic
         {
             if (!set)
             {
-                this.transform.position = Vector3.zero;
+                this.transform.position = new Vector3(0, 30, 0);
             }
             notMove = set;
         }
@@ -42,6 +42,7 @@ namespace Cainos.PixelArtTopDown_Basic
         {
             if (notMove)
             {
+                this.transform.position = new Vector3 (25, -25, 0);
                 return;
             }
             Vector2 dir = Vector2.zero;

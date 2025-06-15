@@ -68,7 +68,7 @@ public class EnemyFSM : MonoBehaviour
     {
         sensor.Turning(false);
         gameStart = true;
-        this.transform.position = new Vector3(8,36,0);
+        this.transform.position = new Vector3(0,0,0);
         ChangeState(State.Idle);
     }
 
@@ -278,7 +278,7 @@ public class EnemyFSM : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().GetIsShooting())
         {
             Projectile item = collision.gameObject.GetComponent<Projectile>();
             item.SetDestoryed();
