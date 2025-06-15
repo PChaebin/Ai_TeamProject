@@ -131,6 +131,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1604456822222823510, guid: d33ae6ab91a5e854aa4bfe8705b607a9,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 8161088707745880121, guid: d33ae6ab91a5e854aa4bfe8705b607a9,
+        type: 3}
+    - target: {fileID: 1604456822222823510, guid: d33ae6ab91a5e854aa4bfe8705b607a9,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnSubmitPassword
+      objectReference: {fileID: 0}
     - target: {fileID: 3570343597818166037, guid: d33ae6ab91a5e854aa4bfe8705b607a9,
         type: 3}
       propertyPath: m_Name
@@ -236,6 +247,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8161088707745880121, guid: d33ae6ab91a5e854aa4bfe8705b607a9,
+        type: 3}
+      propertyPath: doorController
+      value: 
+      objectReference: {fileID: 532621282}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -309,6 +325,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3527e019fc0ad2d459701db1900a8499, type: 3}
+--- !u!114 &532621282 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7096912403314198085, guid: 3527e019fc0ad2d459701db1900a8499,
+    type: 3}
+  m_PrefabInstance: {fileID: 532621281}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b04bfacdc45bd6c4f883852e09a9f01d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &615803156
 PrefabInstance:
   m_ObjectHideFlags: 0

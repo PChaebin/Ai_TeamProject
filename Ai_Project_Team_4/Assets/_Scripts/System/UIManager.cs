@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     public GameObject inventoryUI;
     public GameObject gameoverUI;
     public GameObject gameclearUI;
+    public GameObject passwordUI;
 
     public GameObject item;
 
@@ -33,30 +34,6 @@ public class UIManager : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-        if (inventoryUI.activeSelf)
-        {
-            if (Input.GetKeyUp(KeyCode.O))
-            {
-                TurnGameover();
-            }
-            if (Input.GetKeyUp(KeyCode.C))
-            {
-                StartCoroutine(TurnningTimer());
-            }
-            if (Input.GetKeyUp(KeyCode.I))
-            {
-                if(item.activeSelf)
-                {
-                    UseItem();
-                    return;
-                }
-                SetItem();
-            }
-        }
-
-    }
 
     public void TurnInventory()
     {
