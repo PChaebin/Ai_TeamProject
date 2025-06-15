@@ -13,4 +13,9 @@ public class Password : MonoBehaviour
     {
         current.sprite = sprites[passwordNum];
     }
+
+    public void dest()
+    {
+        Destroy(this.gameObject);
+    }
 }

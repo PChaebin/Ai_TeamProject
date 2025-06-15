@@ -17,6 +17,8 @@ public class Projectile : MonoBehaviour
 
     [Header("isDestoryed")]
     public bool isDestoryed = false;
+    [Header("isShooting")]
+    public bool isShooting = false;
 
     public Rigidbody2D projectileRb;
     public SpriteRenderer projectileSprite;
@@ -51,6 +53,26 @@ public class Projectile : MonoBehaviour
         isDestoryed = false;
     }
 
+    public bool GetIsShooting()
+    {
+        return isShooting;
+    }
+
+    public void SetShooting()
+    {
+        isShooting = true;
+    }
+
+    public void SetStop()
+    {
+        isShooting = false;
+    }
+
+    public void destpr()
+    {
+        Destroy(this.gameObject);
+    }
+
     public void CheckRespawn()
     {
         if (!spawner.CheckAllProjectileLive())
@@ -61,6 +83,7 @@ public class Projectile : MonoBehaviour
 
     public void Fire(Vector2 playerPos, Vector2 mousePos)
     {
+        SetShooting();
         this.transform.position = playerPos;
         OnRender();
         Vector2 direction = (mousePos - playerPos).normalized;
@@ -74,12 +97,11 @@ public class Projectile : MonoBehaviour
         yield return new WaitForSeconds(1.2f);
         if(!GetIsDestoryed())
         {
-            Debug.Log("Projectile 77 + destory");
             SetDestoryed();
+            SetStop();
             OffRender();
         }
         CheckRespawn();
-        Debug.Log("Projectile 82 + destory");
     }
 
     public void OnRender()

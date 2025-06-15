@@ -10,6 +10,15 @@ public class PasswordUIController : MonoBehaviour
     [Header("InputField (Legacy UI) ÂüÁ¶")]
     public TMP_InputField passwordInputField;
 
+    public Button submitBtn;
+
+    private void Awake()
+    {
+        submitBtn.onClick.AddListener(() => {
+            OnSubmitPassword();
+        });
+    }
+
     public void OnSubmitPassword()
     {
         if (doorController == null || passwordInputField == null)

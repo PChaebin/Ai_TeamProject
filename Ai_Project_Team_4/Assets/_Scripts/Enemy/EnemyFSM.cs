@@ -14,13 +14,15 @@ public class EnemyFSM : MonoBehaviour
         Detect,
         Roar,
         Chase,
-        Block,
         Stun
     }
 
     public State currentState = State.Idle;
 
     private float stateTimer = 0f;
+
+    [Header("gameStart")]
+    public bool gameStart = false;
 
     [Header("공통 설정")]
     public float speed = 2f;
@@ -34,34 +36,46 @@ public class EnemyFSM : MonoBehaviour
     public float idleToPatrolTime = 1f;
 
     [Header("Detect 설정")]
-    private float detectDuration = 1.5f;
+    private float detectDuration = 0.4f;
     private float detectTimer = 0f;
 
     [Header("Roar 설정")]
-    private float roarDuration = 1f;
+    private float roarDuration = 0.1f;
 
     [Header("Chase 설정")]
     public float chaseSpeed = 3f;
     public float wallCheckDistance = 0.5f;
 
-    [Header("Block 설정")]
-    private float blockDuration = 1f;
-
     [Header("Stun 설정")]
-    private float stunDuration = 2f;
+    private float stunDuration = 3f;
 
     [Header("Hit Box")]
     public Collider2D Collider;
 
-    void Start()
+    [Header("stay time")]
+    public float stayTime = 3f;
+    public float currentTime = 0f;
+    public Vector3 lastPos;
+    public Vector3 currentPos;
+
+    [Header("monsterInput")]
+    public InputSensor sensor;
+
+    [Header("audio")]
+    public AudioSource audioSource;
+
+    public void StartGame()
     {
-        GameObject found = GameObject.Find("Player");
+        sensor.Turning(false);
+        gameStart = true;
+        this.transform.position = new Vector3(0,0,0);
+        ChangeState(State.Idle);
+    }
 
-        if (found != null)
-            player = found.transform;
-        else
-            UnityEngine.Debug.LogWarning("Player 오브젝트를 찾을 수 없습니다.");
-
+    public void EndGame()
+    {
+        sensor.Turning(false);
+        gameStart = false;
         ChangeState(State.Idle);
     }
 
@@ -86,9 +100,6 @@ public class EnemyFSM : MonoBehaviour
             case State.Chase:
                 Chase(); 
                 break;
-            case State.Block: 
-                Block(); 
-                break;
             case State.Stun: 
                 Stun(); 
                 break;
@@ -101,7 +112,7 @@ public class EnemyFSM : MonoBehaviour
 
         currentState = newState;
         stateTimer = 0f;
-        Debug.Log($"[FSM] State changed to: {newState}");
+        //Debug.Log($"[FSM] State changed to: {newState}");
 
         switch (newState)
         {
@@ -121,13 +132,7 @@ public class EnemyFSM : MonoBehaviour
     /// </summary>
     void Idle() 
     {
-        if (PlayerDetected())
-        {
-            ChangeState(State.Detect);
-            return;
-        }
-
-        if (stateTimer >= idleToPatrolTime)
+        if (gameStart)
         {
             ChangeState(State.Patrol);
         }
@@ -138,13 +143,17 @@ public class EnemyFSM : MonoBehaviour
     /// </summary>
     void Patrol()
     {
+        sensor.Turning(true);
         patrolTimer += Time.deltaTime;
+        currentTime += Time.deltaTime;
 
         if (patrolTimer > patrolChangeTime)
         {
             patrolDirection = UnityEngine.Random.insideUnitCircle.normalized;
             patrolTimer = 0f;
         }
+        if (PlayerDetected())
+            ChangeState(State.Detect);
 
         if (!IsWallInDirection(patrolDirection, wallCheckDistance))
         {
@@ -152,13 +161,22 @@ public class EnemyFSM : MonoBehaviour
         }
         else
         {
-            // 벽에 부딪히면 방향 바꾸기
-            patrolDirection = UnityEngine.Random.insideUnitCircle.normalized;
+            // 벽에 부딪히면 반사되는 방향 바꾸기
+            patrolDirection = -UnityEngine.Random.insideUnitCircle.normalized;
             patrolTimer = 0f;
         }
+        if(currentTime > stayTime)
+        {
+            currentPos = this.transform.position;
+            if (lastPos == currentPos)
+            {
+                patrolDirection = -patrolDirection;
+            }
+            currentTime = 0f;
+            lastPos = this.transform.position;
+        }
 
-        if (PlayerDetected())
-            ChangeState(State.Detect);
+
     }
 
     /// <summary>
@@ -171,16 +189,18 @@ public class EnemyFSM : MonoBehaviour
         if (player == null) return;
 
         Vector2 toPlayer = (player.position - transform.position).normalized;
-        float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        //float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
+        //transform.rotation = Quaternion.Euler(0, 0, angle);
 
         if (detectTimer >= detectDuration)
         {
+            detectDuration = 0.4f;
             ChangeState(State.Roar);
         }
 
         if (!PlayerDetected())
         {
+            detectDuration = 0.4f;
             ChangeState(State.Patrol);
         }
     }
@@ -192,6 +212,7 @@ public class EnemyFSM : MonoBehaviour
     {
         if (stateTimer >= roarDuration)
         {
+            audioSource.Play();
             ChangeState(State.Chase);
         }
     }
@@ -212,29 +233,21 @@ public class EnemyFSM : MonoBehaviour
 
         if (!PlayerDetected())
         {
-            ChangeState(State.Patrol);
+            detectDuration = 1.4f;
+            ChangeState(State.Detect);
         }
     }
 
-    /// <summary>
-    /// 막기 : 플레이어 무기 쳐내기
-    /// </summary>
-    void Block()
-    {
-        if (stateTimer >= blockDuration)
-        {
-            ChangeState(State.Idle);
-        }
-    }
 
     /// <summary>
     /// 기절 : 플레이어 무기 맞고 다운
     /// </summary>
     void Stun()
     {
+        sensor.Turning(false);
         if (stateTimer >= stunDuration)
         {
-            ChangeState(State.Idle);
+            ChangeState(State.Patrol);
         }
     }
 
@@ -265,7 +278,7 @@ public class EnemyFSM : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().GetIsShooting())
         {
             Projectile item = collision.gameObject.GetComponent<Projectile>();
             item.SetDestoryed();

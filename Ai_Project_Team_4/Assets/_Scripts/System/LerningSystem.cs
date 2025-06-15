@@ -13,23 +13,34 @@ public class LerningSystem : MonoBehaviour
     [Header("current Generaton Index")]
     public int genIndex = 0;
     [Header("Fitness")]
-    public List<float> fitness = new List<float>();
-    [Header("Genraton Seed")]
-    public int seed = 1;
+    public List<float> fitness;
+    [Header("current Seed")]
+    public int seedIndex = 1;
 
     //개체수
     [Header("generaton n")]
-    public int genN = 128;
+    public int genN;
     [Header("gen I")]
     public int genI = 35;
     [Header("gen O")]
     public int genO = 20;
+
     //최대세대
     [Header("seed n")]
-    public int seedN = 100;
+    public int seedN;
     //엘리트 수
     [Header("eleitm")]
-    public int ele = 4;
+    public int ele;
+
+    //인풋
+    [Header("inputN")]
+    public int inputN = 7;
+    //히든
+    [Header("hiddenN")]
+    public int hiddenN = 5;
+    //아웃풋
+    [Header("outputN")]
+    public int outputN = 4;
 
     [Header("Mutate1")]
     public float mutate1 = 55f;
@@ -45,17 +56,38 @@ public class LerningSystem : MonoBehaviour
         return generatons[genIndex][i];
     }
 
-    public int genIndexUP()
+    public int genIndexAndSeedUP()
     {
         genIndex++;
-        if(genIndex >= 128)
+        if(genIndex >= genN)
         {
+            seedIndex++;
+            genIndex = 0;
             return -1;
         }
         return genIndex;
     }
 
-    public List<List<float[,]>> SelectEleti(List<float> fitList)
+    public int GetSeedIndex()
+    {
+        return seedIndex;
+    }
+
+    public bool IsOverSeed()
+    {
+        if(seedIndex > seedN)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void NextGens()
+    {
+        generatons = Mutate(SelecteGen(Tournament(), SelectEleti()));
+    }
+
+    public List<List<float[,]>> SelectEleti()
     {
         //다음 세대에 넣을 것
         List<List<float[,]>> corrosGeneratons = new List<List<float[,]>>();
@@ -67,7 +99,7 @@ public class LerningSystem : MonoBehaviour
             int bestIndex = fitness.FindIndex(x => x == bestValue);
             corrosGeneratons.Add(generatons[bestIndex]);
         }
-
+        //Debug.Log("select count : "+corrosGeneratons.Count);
         return corrosGeneratons;
     }
 
@@ -104,6 +136,7 @@ public class LerningSystem : MonoBehaviour
                 tonement.Add(generatons[secondIndex]);
             }
         }
+        //Debug.Log("tonement count : " + tonement.Count);
         return tonement;
     }
 
@@ -112,64 +145,66 @@ public class LerningSystem : MonoBehaviour
     /// </summary>
     public List<List<float[,]>> SelecteGen(List<List<float[,]>> tonement, List<List<float[,]>> corrosGeneratons)
     {
-        int par1indx;
-        int par2indx;
-
-        List<float[,]> parent1;
-        List<float[,]> parent2;
-
-        // 다점 교배 진행
-        while (corrosGeneratons.Count < generatons.Count)
+        //Debug.Log("eletism count : "+corrosGeneratons.Count);
+        // 목표 크기
+        int targetSize = generatons.Count;
+        //Debug.Log("targetSize : " + targetSize);
+        while (corrosGeneratons.Count < targetSize)
         {
-            List<float[,]> child1 = new List<float[,]>();
-            List<float[,]> child2 = new List<float[,]>();
+            // 부모 두 개 랜덤 선택 (서로 다른 인덱스)
+            int i1 = Random.Range(0, tonement.Count);
+            int i2 = Random.Range(0, tonement.Count - 1);
+            if (i2 >= i1) i2++;
+            var parent1 = tonement[i1];
+            var parent2 = tonement[i2];
 
-            par1indx = UnityEngine.Random.Range(0, tonement.Count);
-            par2indx = UnityEngine.Random.Range(0, tonement.Count - 1);
-            if (par2indx >= par1indx)
-                par2indx++;
+            // 절단점 개수는 parent 길이에 맞게 조정
+            int maxCuts = Mathf.Max(1, parent1.Count - 1);
+            int numCuts = Mathf.Min(2, maxCuts);
 
-            parent1 = tonement[par1indx];
-            parent2 = tonement[par2indx];
+            // 1) 가능한 절단점(1 ~ Count-1) 리스트
+            var possibleCuts = Enumerable.Range(1, parent1.Count - 1).ToList();
+            // 2) 섞어서 numCuts개 뽑고 정렬
+            var cuts = possibleCuts
+                .OrderBy(_ => Random.value)
+                .Take(numCuts)
+                .OrderBy(x => x)
+                .ToList();
+            cuts.Add(parent1.Count);  // 끝 지점 추가
 
-            // 1) 절단점 개수 지정
-            int numPoints = 2;
-
-            // 2) [1, parent1.Count) 범위에서 중복 없이 절단점 생성
-            List<int> points = new List<int>();
-            while (points.Count < numPoints)
-            {
-                int p = UnityEngine.Random.Range(1, parent1.Count);
-                if (!points.Contains(p))
-                    points.Add(p);
-            }
-            points.Sort();            // 오름차순 정렬
-            points.Add(parent1.Count); // 마지막은 전체 길이
-
-            // 4) 절단점 사이 구간을 번갈아 가며 붙여넣기
+            // 3) 교차 생성
+            var child1 = new List<float[,]>();
+            var child2 = new List<float[,]>();
             int last = 0;
-            bool takeFromP1 = true;
-            foreach (int cut in points)
+            bool takeP1 = true;
+            foreach (int cut in cuts)
             {
                 int len = cut - last;
-                if (takeFromP1)
+                if (takeP1)
                 {
-                    // parent1 → child1, parent2 → child2
                     child1.AddRange(parent1.GetRange(last, len));
                     child2.AddRange(parent2.GetRange(last, len));
                 }
                 else
                 {
-                    // parent2 → child1, parent1 → child2
                     child1.AddRange(parent2.GetRange(last, len));
                     child2.AddRange(parent1.GetRange(last, len));
                 }
-                takeFromP1 = !takeFromP1;
+                takeP1 = !takeP1;
                 last = cut;
             }
+
             corrosGeneratons.Add(child1);
             corrosGeneratons.Add(child2);
         }
+        if(corrosGeneratons.Count > targetSize)
+        {
+            for(int i = corrosGeneratons.Count -1; i >= targetSize; i--)
+            {
+                corrosGeneratons.RemoveAt(i);
+            }
+        }
+        //Debug.Log("corrosGeneratons count : " + corrosGeneratons.Count);
         return corrosGeneratons;
     }
 
@@ -179,28 +214,34 @@ public class LerningSystem : MonoBehaviour
         int idx = 0;
         int x = 0;
         int y = 0;
-
-        for (int j = 3; j < genN; j++)
+        for (int j = ele; j < genN; j++)
         {
             mutate = UnityEngine.Random.value * 100;
-            if (mutate < mutate1)
+            //Debug.Log("mutate : " + mutate);
+            if (mutate <= mutate1)
             {
                 idx = UnityEngine.Random.Range(0, genI);
-                y = idx % 5;
-                x = idx / 5;
-                corrosGeneratons[j][0][y, x] = UnityEngine.Random.Range(10, 80);
+                //Debug.Log(idx);
+                x = idx % hiddenN;
+                y = idx % inputN;
+                corrosGeneratons[j][0][x, y] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f) / 100f;
             }
-            if (mutate < mutate2)
+            if (mutate <= mutate2)
             {
                 idx = UnityEngine.Random.Range(0, genO);
-                y = idx % 4;
-                x = idx / 4;
-                corrosGeneratons[j][1][y, x] = UnityEngine.Random.Range(10, 80);
+                //Debug.Log(idx);
+                x = idx % outputN;
+                y = idx % hiddenN;
+                corrosGeneratons[j][1][x, y] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f) / 100f;
             }
         }
-        seed++;
-        genIndex = 0;
 
+        fitness.Clear();
+        for(int i = 0; i < genN; i++)
+        {
+            fitness.Add(0);
+        }
+        //Debug.Log("fitness count : "+fitness.Count);
         return corrosGeneratons;
     }
 
@@ -209,12 +250,12 @@ public class LerningSystem : MonoBehaviour
     /// </summary>
     public void SetFitness(GameObject leftPoint, GameObject rightPoint, GameObject projectileObj)
     {
-        float leftdist = maxDist - (leftPoint.transform.position - projectileObj.transform.position).magnitude;
+        float leftdist = maxDist - (projectileObj.transform.position - leftPoint.transform.position).magnitude;
         if (leftdist < 0)
         {
             leftdist = 0;
         }
-        float rightdist = maxDist - (rightPoint.transform.position - projectileObj.transform.position).magnitude;
+        float rightdist = maxDist - (projectileObj.transform.position - rightPoint.transform.position).magnitude;
         if (rightdist < 0)
         {
             rightdist = 0;
@@ -236,24 +277,28 @@ public class LerningSystem : MonoBehaviour
         {
             generatons.Add(InitGeneratons());
             fitness.Add(0);
+            //Debug.Log(fitness.Count);
         }
+       //Debug.Log("init");
     }
     public List<float[,]> InitGeneratons()
     {
-        float[,] ih = new float[5, 7];
-        float[,] ho = new float[4, 5];
-        for (int h = 0; h < 5; h++)
+        float[,] ih = new float[hiddenN, inputN];
+        float[,] ho = new float[outputN, hiddenN];
+        for (int h = 0; h < hiddenN; h++)
         {
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < inputN; i++)
             {
-                ih[h, i] = UnityEngine.Random.Range(10, 80);
+                ih[h, i] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) * 100f ) / 100f;
+                //Debug.Log("ih : "+ih[h, i]);
             }
         }
-        for (int o = 0; o < 4; o++)
+        for (int o = 0; o < outputN; o++)
         {
-            for (int h = 0; h < 5; h++)
+            for (int h = 0; h < hiddenN; h++)
             {
-                ho[o, h] = UnityEngine.Random.Range(10, 80);
+                ho[o, h] = Mathf.Floor(UnityEngine.Random.Range(-1f, 1f) *100f) / 100f;
+                //Debug.Log("ho : " + ho[o, h]);
             }
         }
         List<float[,]> generaton = new List<float[,]>();
@@ -281,40 +326,31 @@ public class LerningSystem : MonoBehaviour
         int idx = fitness.IndexOf(mx);
         List<float[,]> eleGen = generatons[idx];
 
-        string path = Path.Combine("D:\\UnityHub\\UnityGame\\Ai_TeamProject\\Ai_Project_Team_4\\Assets\\_Scripts\\System", "eletism");
-        using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
+        string bestGen = "";
+        for(int i = 0; i < hiddenN; i++)
         {
-            for (int arrayIndex = 0; arrayIndex < eleGen.Count; arrayIndex++)
+            for (int j = 0; j < inputN; j++)
             {
-                float[,] array2D = eleGen[arrayIndex];
-                int rows = array2D.GetLength(0);
-                int cols = array2D.GetLength(1);
-
-                // 배열 구분을 위해 헤더 라인 삽입 (선택 사항)
-                writer.WriteLine($"# Array {arrayIndex} (행: {rows}, 열: {cols})");
-
-                // 각 행(row)마다 데이터를 한 줄에 콤마(또는 탭)로 구분해서 작성
-                for (int r = 0; r < rows; r++)
-                {
-                    StringBuilder lineBuilder = new StringBuilder();
-                    for (int c = 0; c < cols; c++)
-                    {
-                        lineBuilder.Append(array2D[r, c].ToString());
-
-                        // 마지막 열이 아니면 구분자 추가
-                        if (c < cols - 1)
-                            lineBuilder.Append(",");  // 콤마(,)로 구분. 필요 시 '\t'로 변경 가능
-                    }
-
-                    writer.WriteLine(lineBuilder.ToString());
-                }
-
-                // 배열 간에 빈 줄 하나 추가 (선택 사항)
-                writer.WriteLine();
+                bestGen += eleGen[0][i, j].ToString();
+                if (j == inputN - 1) break;
+                bestGen += ", ";
             }
+            if (i == hiddenN - 1) break;
+            bestGen += " % ";
         }
-        Debug.Log($"데이터를 다음 경로에 저장했습니다: {path}");
-
+        bestGen += " / ";
+        for (int i = 0; i < outputN; i++)
+        {
+            for (int j = 0; j < hiddenN; j++)
+            {
+                bestGen += eleGen[1][i, j].ToString();
+                if (j == hiddenN - 1) break;
+                bestGen += ", ";
+            }
+            if (i == outputN - 1) break;
+            bestGen += " % ";
+        }
+        PlayerPrefs.SetString("best", bestGen);
+        Debug.Log("result : "+PlayerPrefs.GetString("best"));
     }
-
 }

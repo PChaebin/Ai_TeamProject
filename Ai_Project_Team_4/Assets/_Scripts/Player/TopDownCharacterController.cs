@@ -9,19 +9,42 @@ namespace Cainos.PixelArtTopDown_Basic
     {
         public float speed;
 
+        [Header("moving")]
+        public bool notMove = true;
+
         public Transform spotlightTransform;
 
         private Animator animator;
         private Rigidbody2D rb;
 
-        private void Start()
+        private void Awake()
         {
             animator = GetComponent<Animator>();
             rb = GetComponent<Rigidbody2D>();
+            notMove = true;
+        }
+
+        public void SetMove(bool set)
+        {
+            if (!set)
+            {
+                this.transform.position = new Vector3(0, 30, 0);
+            }
+            notMove = set;
+        }
+
+        public bool GetNotMove()
+        {
+            return notMove;
         }
 
         private void Update()
         {
+            if (notMove)
+            {
+                this.transform.position = new Vector3 (25, -25, 0);
+                return;
+            }
             Vector2 dir = Vector2.zero;
 
             if (Input.GetKey(KeyCode.A))

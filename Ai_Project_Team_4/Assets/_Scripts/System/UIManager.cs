@@ -1,3 +1,4 @@
+using Cainos.PixelArtTopDown_Basic;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,61 +10,46 @@ public class UIManager : MonoBehaviour
     public GameObject inventoryUI;
     public GameObject gameoverUI;
     public GameObject gameclearUI;
+    public GameObject passwordUI;
 
     public GameObject item;
-
-    public Button startBtu;
-    public Button retryBtu;
+    public GameObject monster;
+    public GameObject player;
+    public ItemSpawner spawner;
 
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
         titleUI.SetActive(true);
         inventoryUI.SetActive(false);
         gameoverUI.SetActive(false);
         gameclearUI.SetActive(false);
-
-        startBtu.onClick.AddListener(() => {
-            TurnInventory();
-        });
-
-        retryBtu.onClick.AddListener(() => {
-            TurnTitle();
-        });
-
+        passwordUI.SetActive(false);
+        monster.SetActive(false);
+        player.SetActive(false);
     }
 
     private void Update()
     {
-        if (inventoryUI.activeSelf)
+        if (Input.GetKey(KeyCode.Escape))
         {
-            if (Input.GetKeyUp(KeyCode.O))
-            {
-                TurnGameover();
-            }
-            if (Input.GetKeyUp(KeyCode.C))
-            {
-                StartCoroutine(TurnningTimer());
-            }
-            if (Input.GetKeyUp(KeyCode.I))
-            {
-                if(item.activeSelf)
-                {
-                    UseItem();
-                    return;
-                }
-                SetItem();
-            }
+            Application.Quit();
         }
-
     }
 
     public void TurnInventory()
     {
         titleUI.SetActive(false);
         inventoryUI.SetActive(true);
+        UseItem();
         gameoverUI.SetActive(false);
         gameclearUI.SetActive(false);
+        passwordUI.SetActive(false);
+        monster.SetActive(true);
+        player.SetActive(true);
+        monster.GetComponent<EnemyFSM>().StartGame();
+        player.GetComponent<TopDownCharacterController>().SetMove(false);
+        spawner.SetItems();
     }
 
     public void TurnTitle()
@@ -72,6 +58,11 @@ public class UIManager : MonoBehaviour
         inventoryUI.SetActive(false);
         gameoverUI.SetActive(false);
         gameclearUI.SetActive(false);
+        passwordUI.SetActive(false);
+        spawner.ClearItems();
+        player.transform.position = new Vector3(0, 30, 0);
+        monster.SetActive(false);
+        player.SetActive(false);
     }
 
     public void TurnGameover()
@@ -80,6 +71,10 @@ public class UIManager : MonoBehaviour
         inventoryUI.SetActive(false);
         gameoverUI.SetActive(true);
         gameclearUI.SetActive(false);
+        passwordUI.SetActive(false);
+        monster.GetComponent<EnemyFSM>().EndGame(); 
+        player.GetComponent<TopDownCharacterController>().SetMove(true);
+        player.SetActive(false);
     }
 
     public void TurnGameclear()
@@ -88,6 +83,9 @@ public class UIManager : MonoBehaviour
         inventoryUI.SetActive(false);
         gameoverUI.SetActive(false);
         gameclearUI.SetActive(true);
+        passwordUI.SetActive(false);
+        monster.GetComponent<EnemyFSM>().EndGame();
+        player.GetComponent<TopDownCharacterController>().SetMove(true);
     }
 
     public void SetItem() 
@@ -98,12 +96,5 @@ public class UIManager : MonoBehaviour
     public void UseItem()
     {
         item.SetActive(false);
-    }
-
-    IEnumerator TurnningTimer()
-    {
-        TurnGameclear();
-        yield return new WaitForSeconds(5f);
-        TurnTitle();
     }
 }
