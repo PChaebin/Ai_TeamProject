@@ -59,7 +59,7 @@ public class InputSensor : MonoBehaviour
     public int outputN = 4;
 
     // Update is called once per frame
-    void Start()
+    void Awake()
     {
         //Debug.Log("start");
         outputLayerNode = new float[4] { 0,0,0,0 };
@@ -75,20 +75,16 @@ public class InputSensor : MonoBehaviour
         finalGen = ReadFileGreateGen();
         weightIH = finalGen[0];
         weightHO = finalGen[1];
-        for (int j = 0; j < hiddenN; j++)
-        {
-            for (int k = 0; k < inputN; k++)
-            {
-                Debug.Log(weightIH[j, k]);
-            }
-        }
-        for (int j = 0; j < outputN; j++)
-        {
-            for (int k = 0; k < hiddenN; k++)
-            {
-                Debug.Log(weightHO[j, k]);
-            }
-        }
+    }
+
+    public void Turning(bool set)
+    {
+        isTurning = set;
+    }
+
+    public bool GetTurn()
+    {
+        return isTurning;
     }
 
     private void FixedUpdate()

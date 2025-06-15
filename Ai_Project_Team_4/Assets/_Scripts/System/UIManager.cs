@@ -17,21 +17,38 @@ public class UIManager : MonoBehaviour
     public GameObject player;
     public ItemSpawner spawner;
 
+    public Button startBtn;
+    public Button retryBtn;
+    public Button regameBtn;
+
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
+        startBtn.onClick.AddListener(() => {
+            TurnInventory();
+        });
+
+        retryBtn.onClick.AddListener(() => {
+            TurnTitle();
+        });
+
+        regameBtn.onClick.AddListener(() =>{
+            TurnTitle();
+        });
+
         titleUI.SetActive(true);
         inventoryUI.SetActive(false);
         gameoverUI.SetActive(false);
         gameclearUI.SetActive(false);
         passwordUI.SetActive(false);
         monster.SetActive(false);
-        player.SetActive(true);
+        player.SetActive(false);
     }
 
 
     public void TurnInventory()
     {
+        Debug.Log("click!");
         titleUI.SetActive(false);
         inventoryUI.SetActive(true);
         gameoverUI.SetActive(false);

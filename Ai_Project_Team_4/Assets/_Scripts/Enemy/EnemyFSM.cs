@@ -14,7 +14,6 @@ public class EnemyFSM : MonoBehaviour
         Detect,
         Roar,
         Chase,
-        Block,
         Stun
     }
 
@@ -47,9 +46,6 @@ public class EnemyFSM : MonoBehaviour
     public float chaseSpeed = 3f;
     public float wallCheckDistance = 0.5f;
 
-    [Header("Block 설정")]
-    private float blockDuration = 1f;
-
     [Header("Stun 설정")]
     private float stunDuration = 3f;
 
@@ -62,21 +58,15 @@ public class EnemyFSM : MonoBehaviour
     public Vector3 lastPos;
     public Vector3 currentPos;
 
-    void Start()
-    {
-        lastPos = this.transform.position;
-        GameObject found = GameObject.Find("Player");
+    [Header("monsterInput")]
+    public InputSensor sensor;
 
-        if (found != null)
-            player = found.transform;
-        else
-            UnityEngine.Debug.LogWarning("Player 오브젝트를 찾을 수 없습니다.");
-
-        ChangeState(State.Idle);
-    }
+    [Header("audio")]
+    public AudioSource audioSource;
 
     public void StartGame()
     {
+        sensor.Turning(false);
         gameStart = true;
         this.transform.position = new Vector3(8,36,0);
         ChangeState(State.Idle);
@@ -84,6 +74,7 @@ public class EnemyFSM : MonoBehaviour
 
     public void EndGame()
     {
+        sensor.Turning(false);
         gameStart = false;
         ChangeState(State.Idle);
     }
@@ -109,9 +100,6 @@ public class EnemyFSM : MonoBehaviour
             case State.Chase:
                 Chase(); 
                 break;
-            case State.Block: 
-                Block(); 
-                break;
             case State.Stun: 
                 Stun(); 
                 break;
@@ -124,7 +112,7 @@ public class EnemyFSM : MonoBehaviour
 
         currentState = newState;
         stateTimer = 0f;
-        Debug.Log($"[FSM] State changed to: {newState}");
+        //Debug.Log($"[FSM] State changed to: {newState}");
 
         switch (newState)
         {
@@ -155,6 +143,7 @@ public class EnemyFSM : MonoBehaviour
     /// </summary>
     void Patrol()
     {
+        sensor.Turning(true);
         patrolTimer += Time.deltaTime;
         currentTime += Time.deltaTime;
 
@@ -181,7 +170,6 @@ public class EnemyFSM : MonoBehaviour
             currentPos = this.transform.position;
             if (lastPos == currentPos)
             {
-                Debug.Log("change");
                 patrolDirection = -patrolDirection;
             }
             currentTime = 0f;
@@ -224,6 +212,7 @@ public class EnemyFSM : MonoBehaviour
     {
         if (stateTimer >= roarDuration)
         {
+            audioSource.Play();
             ChangeState(State.Chase);
         }
     }
@@ -249,22 +238,13 @@ public class EnemyFSM : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 막기 : 플레이어 무기 쳐내기
-    /// </summary>
-    void Block()
-    {
-        if (stateTimer >= blockDuration)
-        {
-            ChangeState(State.Idle);
-        }
-    }
 
     /// <summary>
     /// 기절 : 플레이어 무기 맞고 다운
     /// </summary>
     void Stun()
     {
+        sensor.Turning(false);
         if (stateTimer >= stunDuration)
         {
             ChangeState(State.Patrol);

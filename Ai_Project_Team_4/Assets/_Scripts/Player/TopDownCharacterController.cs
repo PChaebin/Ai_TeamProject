@@ -17,7 +17,7 @@ namespace Cainos.PixelArtTopDown_Basic
         private Animator animator;
         private Rigidbody2D rb;
 
-        private void Start()
+        private void Awake()
         {
             animator = GetComponent<Animator>();
             rb = GetComponent<Rigidbody2D>();
